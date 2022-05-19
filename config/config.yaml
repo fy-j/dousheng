@@ -6,6 +6,6 @@ redis:
   db: 0
   pool_size: 100
 minIO:
-  endpoint: "119.23.252.204:9099"
+  endpoint: "119.23.252.204:9000"
   username: "username"
   password: "password"
