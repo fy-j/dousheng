@@ -14,14 +14,14 @@ func main() {
 	config.Init()
 
 	//redis初始化
-	if err := redis.Init(config.Conf.RedisConfig); err != nil {
+	if err := redis.Init(&config.Conf.Redis); err != nil {
 		fmt.Printf("init redis failed, err:%v\n", err)
 		return
 	}
 	defer redis.Close()
 
 	//minIO初始化
-	minIO.InitMinIO(config.Conf.MinIOConfig)
+	minIO.InitMinIO(&config.Conf.MinIO)
 
 	//路由初始化
 	r := gin.Default()

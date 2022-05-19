@@ -9,3 +9,9 @@ minIO:
   endpoint: "119.23.252.204:9000"
   username: "username"
   password: "password"
+mongo:
+  name: "dousheng"
+  host: "125.73.58.176"
+  post: 5208
+  user: "chaiquan"
+  pwd:  ""

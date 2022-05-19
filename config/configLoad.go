@@ -10,9 +10,10 @@ var Conf = new(Config)
 
 //
 type Config struct {
-	Port         int `mapstructure:"port"`
-	*RedisConfig `mapstructure:"redis"`
-	*MinIOConfig `mapstructure:"minio"`
+	Port        int `mapstructure:"port"`
+	Redis		RedisConfig `mapstructure:"redis"`
+	MinIO		MinIOConfig `mapstructure:"minio"`
+	Mongo		MongoConfig `mapstructure:"mongo"`
 }
 
 //redis 配置类
@@ -30,6 +31,15 @@ type MinIOConfig struct {
 	Endpoint string `mapstructure:"endpoint"`
 	Username string `mapstructure:"username"`
 	Password string `mapstructure:"password"`
+}
+
+//mongodb config struct
+type MongoConfig struct {
+	DBname string ` json:"name" `
+	Host   string ` json:"host" `
+	Port   string ` json:"port" `
+	User   string ` json:"user" `
+	Pwd    string ` json:"pwd"  `
 }
 
 func Init() error {
