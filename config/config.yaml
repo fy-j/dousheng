@@ -5,3 +5,7 @@ redis:
   password: "Bytedance@2022"
   db: 0
   pool_size: 100
+minIO:
+  endpoint: "119.23.252.204:9099"
+  username: "username"
+  password: "password"

@@ -2,6 +2,7 @@ package main
 
 import (
 	"dousheng/config"
+	"dousheng/minIO"
 	"dousheng/redis"
 	"dousheng/router"
 	"fmt"
@@ -19,10 +20,14 @@ func main() {
 	}
 	defer redis.Close()
 
+	//minIO初始化
+	minIO.InitMinIO(config.Conf.MinIOConfig)
+
 	//路由初始化
 	r := gin.Default()
 
 	router.InitRouter(r)
 
 	r.Run()
+
 }
