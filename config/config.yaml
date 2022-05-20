@@ -1,8 +1,8 @@
 port: 8080
 redis:
-  host: "122.9.122.77"
-  port: 8635
-  password: "Bytedance@2022"
+  host: "119.23.252.204"
+  port: 6379
+  password: "redis"
   db: 0
   pool_size: 100
 minIO:
