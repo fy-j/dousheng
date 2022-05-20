@@ -3,7 +3,7 @@ package model
 import (
 	"dousheng/config"
 	mgo "gopkg.in/mgo.v2"
-	_"gopkg.in/mgo.v2/bson"
+	_ "gopkg.in/mgo.v2/bson"
 )
 
 const (
@@ -92,13 +92,13 @@ func userList(query, selector interface{}) ([]User, error) {
 func initMaxId() {
 	s := mongoSession.Copy()
 	defer s.Close()
-	c := s.DB(DBName).C(ColUser);
+	c := s.DB(DBName).C(ColUser)
 
 	var user User
-	err:=c.Find(nil).Sort("-id").One(&user);
-	if err==nil{
-		userMaxId=user.UserId;
-	}else{
-		userMaxId=0;
+	err := c.Find(nil).Sort("-id").One(&user)
+	if err == nil {
+		userMaxId = user.UserId + 1
+	} else {
+		userMaxId = 0
 	}
 }

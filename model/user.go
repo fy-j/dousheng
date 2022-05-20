@@ -5,6 +5,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+//user info in database
 type User struct {
 	ID        bson.ObjectId `bson:"_id,omitempty" json:"_id,omitempty"`
 	UserId    int           `bson:"id" json:"id"`
@@ -18,6 +19,7 @@ type User struct {
 	IsFollow  bool          `bson:"is_follow" json:"is_follow"`
 }
 
+//user info back to app
 type UserInfo struct {
 	UserId    int    `bson:"id" json:"id"`
 	Name      string `bson:"name" json:"name"`
@@ -43,6 +45,7 @@ func UserAdd(name, pwd string) (int, error) {
 	return user.UserId, err
 }
 
+//judge user exist by name
 func UserExist(name string) (bool, error) {
 	query := bson.M{
 		"name": name,
@@ -53,6 +56,7 @@ func UserExist(name string) (bool, error) {
 	}
 	return false, err
 }
+
 //database user info
 func UserGetById(id int) (User, error) {
 	query := bson.M{
@@ -61,21 +65,23 @@ func UserGetById(id int) (User, error) {
 	user, err := userGet(query, nil)
 	return user, err
 }
+
 //user info back to app
-func UserInfoById(id int) (UserInfo ,error){
+func UserInfoById(id int) (UserInfo, error) {
 	query := bson.M{
 		"id": id,
 	}
 	user, err := userGet(query, nil)
-	user_info:=UserInfo{};
-	user_info.Name=user.Name;
-	user_info.UserId=user.UserId;
-	user_info.FansCount=user.FansCount;
-	user_info.FollCount=user.FollCount;
-	user_info.IsFollow=false;
+	user_info := UserInfo{}
+	user_info.Name = user.Name
+	user_info.UserId = user.UserId
+	user_info.FansCount = user.FansCount
+	user_info.FollCount = user.FollCount
+	user_info.IsFollow = false
 	return user_info, err
 }
 
+//if user pwd or name wrong,it will basc error,or data be stored in user
 func UserLogin(name, pwd string) (User, error) {
 	query := bson.M{
 		"name":     name,
