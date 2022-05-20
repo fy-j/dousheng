@@ -53,13 +53,27 @@ func UserExist(name string) (bool, error) {
 	}
 	return false, err
 }
-
-func UserInfoById(id int) (User, error) {
+//database user info
+func UserGetById(id int) (User, error) {
 	query := bson.M{
 		"id": id,
 	}
 	user, err := userGet(query, nil)
 	return user, err
+}
+//user info back to app
+func UserInfoById(id int) (UserInfo ,error){
+	query := bson.M{
+		"id": id,
+	}
+	user, err := userGet(query, nil)
+	user_info:=UserInfo{};
+	user_info.Name=user.Name;
+	user_info.UserId=user.UserId;
+	user_info.FansCount=user.FansCount;
+	user_info.FollCount=user.FollCount;
+	user_info.IsFollow=false;
+	return user_info, err
 }
 
 func UserLogin(name, pwd string) (User, error) {
