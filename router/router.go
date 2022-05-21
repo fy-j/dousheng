@@ -24,7 +24,6 @@ func InitRouter(r *gin.Engine) {
 	apiRouter.GET("/user", controller.AuthMiddleware.MiddlewareFunc(), controller.UserInfoHandler)
 	apiRouter.POST("/publish/action/", controller.Publish)
 	apiRouter.GET("/publish/list/", controller.PublishList)
-	apiRouter.POST("/upload", minIO.Upload)
 	apiRouter.GET("/download", minIO.Download)
 
 	// extra apis - I
