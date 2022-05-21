@@ -11,11 +11,8 @@ func RedisTest(c *gin.Context) {
 	pong, err := client.Ping().Result()
 	fmt.Println(pong, err)
 	//client.FlushAll()
-	video := DemoVideos[0]
-	s := video.Encoder()
-	client.Do("zadd", "feedVideos", 1, s)
-	byteGet := client.ZRange("feedVideos", 0, 0)
-	videoPull := Decoder(string(byteGet.Val()[0]))
-	fmt.Println(video)
-	fmt.Println(videoPull)
+	for _, video := range DemoVideos {
+		s := video.Encoder()
+		client.Do("zadd", "feedVideos", 1, s)
+	}
 }
