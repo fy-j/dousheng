@@ -4,6 +4,7 @@ import (
 	"dousheng/redis"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"time"
 )
 
 func RedisTest(c *gin.Context) {
@@ -13,6 +14,6 @@ func RedisTest(c *gin.Context) {
 	//client.FlushAll()
 	for _, video := range DemoVideos {
 		s := video.Encoder()
-		client.Do("zadd", "feedVideos", 1, s)
+		client.Do("zadd", "feedVideos", time.Now().Unix(), s)
 	}
 }

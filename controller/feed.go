@@ -2,8 +2,10 @@ package controller
 
 import (
 	"bytes"
+	"dousheng/model"
 	"dousheng/redis"
 	"encoding/gob"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
@@ -20,7 +22,7 @@ type FeedResponse struct {
 func Feed(c *gin.Context) {
 	client := redis.Clients
 	key := "feedVideos"
-	var VideoList []Video
+	var VideoListRes []Video
 	//redis拉取
 	if videosNum := client.ZCard(key).Val(); videosNum != 0 {
 		//有
@@ -32,17 +34,42 @@ func Feed(c *gin.Context) {
 			video := Decoder(s)
 			tmp[pos] = video
 		}
-		VideoList = tmp[0:videosNum]
+		VideoListRes = tmp[0:videosNum]
 	} else {
-		//TODO 没有，从数据库拉取
-
-		//TODO 更新到redis
-
+		//TODO 数据库无数据，未测试
+		//没有，从数据库拉取
+		if InfoList, err := model.VideoList(time.Now().Unix()); err != nil {
+			fmt.Println(err)
+		} else {
+			var tmp [30]Video
+			for pos, info := range InfoList {
+				if pos == 30 {
+					break
+				}
+				tmp[pos] = Video{
+					Id: int64(info.VideoID),
+					Author: User{
+						Id:            int64(info.Author.UserId),
+						Name:          info.Author.Name,
+						FollowCount:   int64(info.Author.FollCount),
+						FollowerCount: int64(info.Author.FansCount),
+						IsFollow:      info.Author.IsFollow,
+					},
+					PlayUrl:       info.PlayUrl,
+					CoverUrl:      info.CoverUrl,
+					FavoriteCount: int64(info.FavCount),
+					CommentCount:  int64(info.ComCount),
+					IsFavorite:    info.IsFav,
+				}
+				//更新到redis
+				client.Do("zadd", key, info.Time, tmp[pos].Encoder())
+			}
+			VideoListRes = tmp[0:len(InfoList)]
+		}
 	}
-
 	c.JSON(http.StatusOK, FeedResponse{
 		Response:  Response{StatusCode: 0},
-		VideoList: VideoList,
+		VideoList: VideoListRes,
 		NextTime:  time.Now().Unix(),
 	})
 }
