@@ -10,19 +10,12 @@ func RedisTest(c *gin.Context) {
 	client := redis.Clients
 	pong, err := client.Ping().Result()
 	fmt.Println(pong, err)
-
-	err = client.Set("key", "value", 0).Err()
-	if err != nil {
-		panic(err)
-	}
 	//client.FlushAll()
-
-	val, err := client.Get("key").Result()
-	if err == redis.Nil {
-		fmt.Println("key does not exists")
-	} else if err != nil {
-		panic(err)
-	} else {
-		fmt.Println("key", val)
-	}
+	video := DemoVideos[0]
+	s := video.Encoder()
+	client.Do("zadd", "feedVideos", 1, s)
+	byteGet := client.ZRange("feedVideos", 0, 0)
+	videoPull := Decoder(string(byteGet.Val()[0]))
+	fmt.Println(video)
+	fmt.Println(videoPull)
 }

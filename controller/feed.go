@@ -1,7 +1,10 @@
 package controller
 
 import (
+	"bytes"
+	"encoding/gob"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
 	"time"
 )
@@ -19,4 +22,26 @@ func Feed(c *gin.Context) {
 		VideoList: DemoVideos,
 		NextTime:  time.Now().Unix(),
 	})
+}
+
+//Video序列化
+func (v *Video) Encoder() string {
+	var buffer bytes.Buffer
+	encoder := gob.NewEncoder(&buffer)
+	err := encoder.Encode(v)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return string(buffer.Bytes())
+}
+
+//Video反序列化
+func Decoder(videoByte string) Video {
+	var video Video
+	decoder := gob.NewDecoder(bytes.NewReader([]byte(videoByte)))
+	err := decoder.Decode(&video)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return video
 }
