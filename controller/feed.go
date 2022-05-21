@@ -28,13 +28,14 @@ func Feed(c *gin.Context) {
 		//有
 		//获取到序列化的字符串数组
 		var tmp [30]Video
-		Vs := client.ZRange(key, 0, videosNum-1).Val()
+		Vs := client.ZRevRange(key, 0, videosNum-1).Val()
 		//反序列化
 		for pos, s := range Vs {
 			video := Decoder(s)
 			tmp[pos] = video
 		}
 		VideoListRes = tmp[0:videosNum]
+
 	} else {
 		//没有，从数据库拉取
 		if InfoList, err := model.VideoList(0, 30); err != nil {
