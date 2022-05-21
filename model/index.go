@@ -22,8 +22,6 @@ func init() {
 	}
 	mongoSession = session
 	initMaxId()
-	fmt.Println("id:")
-	fmt.Println(userMaxId)
 
 	log.Println("Database init done!")
 }

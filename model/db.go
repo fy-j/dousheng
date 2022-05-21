@@ -2,7 +2,6 @@ package model
 
 import (
 	"dousheng/config"
-	"fmt"
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -93,7 +92,7 @@ func userList(query, selector interface{}) ([]User, error) {
 func videoList(query, selector, sort interface{}, limit int) ([]VideoInfo, error) {
 	s := mongoSession.Copy()
 	defer s.Close()
-	c := s.DB(DBName).C(ColUser)
+	c := s.DB(DBName).C(ColVideo)
 
 	pipe := []bson.M{
 		{
@@ -135,7 +134,7 @@ func videoList(query, selector, sort interface{}, limit int) ([]VideoInfo, error
 func videoGet(query interface{}) (Video, error) {
 	s := mongoSession.Copy()
 	defer s.Close()
-	c := s.DB(DBName).C(ColUser)
+	c := s.DB(DBName).C(ColVideo)
 
 	video := Video{}
 	err := c.Find(query).One(&video)
@@ -163,6 +162,4 @@ func initMaxId() {
 	} else {
 		userMaxId = 0
 	}
-	fmt.Println(userMaxId)
-	fmt.Println(videoMaxId)
 }
