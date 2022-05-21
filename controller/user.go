@@ -183,6 +183,15 @@ func Register(c *gin.Context) {
 			})
 			return
 		}
+
+		c.JSON(http.StatusOK, UserLoginResponse{
+			Response: Response{
+				StatusCode: 0,
+				StatusMsg:  "success",
+			},
+			UserId: 0,
+			Token:  "",
+		})
 		// 请求重定向(307),进行用户登录
 		c.Redirect(http.StatusTemporaryRedirect, "/douyin/user/login")
 	}
