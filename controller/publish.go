@@ -16,7 +16,7 @@ type VideoListResponse struct {
 
 // Publish check token then save upload file to public directory
 func Publish(c *gin.Context) {
-	token := c.PostForm("token")
+	//token := c.PostForm("token")
 	//用户鉴权
 	//if _, exist := usersLoginInfo[token]; !exist {
 	//	c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
@@ -33,8 +33,8 @@ func Publish(c *gin.Context) {
 	}
 	//title := c.Query("title")
 	filename := filepath.Base(data.Filename)
-	user := usersLoginInfo[token]
-	finalName := fmt.Sprintf("%d_%s", user.Id, filename)
+	//user := usersLoginInfo[token]
+	finalName := fmt.Sprintf("%s", filename)
 	fileObj, err := data.Open()
 	if minIO.Upload(config.Conf.Bucket.Feed, finalName, fileObj, data.Size) {
 		//model.VideoAdd()
