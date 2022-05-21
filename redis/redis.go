@@ -23,7 +23,6 @@ func Init(cfg *config.RedisConfig) (err error) {
 		PoolSize:     cfg.PoolSize,
 		MinIdleConns: cfg.MinIdleConns,
 	})
-
 	_, err = Clients.Ping().Result()
 	if err != nil {
 		return err
