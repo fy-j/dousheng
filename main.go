@@ -3,9 +3,10 @@ package main
 import (
 	"dousheng/config"
 	"dousheng/minIO"
+	_ "dousheng/model"
+	"dousheng/mq"
 	"dousheng/redis"
 	"dousheng/router"
-	_"dousheng/model"
 	"fmt"
 	"github.com/gin-gonic/gin"
 )
@@ -22,6 +23,9 @@ func main() {
 
 	//minIO初始化
 	minIO.InitMinIO(&config.Conf.MinIO)
+
+	//ampq 初始化
+	mq.InitAmqp(&config.Conf.RabbitMQ)
 
 	//路由初始化
 	r := gin.Default()
