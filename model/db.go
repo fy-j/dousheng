@@ -3,7 +3,8 @@ package model
 import (
 	"dousheng/config"
 	mgo "gopkg.in/mgo.v2"
-	_ "gopkg.in/mgo.v2/bson"
+	"gopkg.in/mgo.v2/bson"
+	"fmt"
 )
 
 const (
@@ -89,11 +90,63 @@ func userList(query, selector interface{}) ([]User, error) {
 	return list, err
 }
 
-func initMaxId() {
+func videoList(query,selector,sort interface{},limit int)([]VideoInfo,error){
 	s := mongoSession.Copy()
 	defer s.Close()
 	c := s.DB(DBName).C(ColUser)
 
+	pipe := []bson.M{
+		{
+			"$match": query,
+		},
+		{
+			"$sort": sort,
+		},
+		{
+			"$limit": limit,
+		},
+	}
+	pipe = append(pipe, bson.M{
+		"$lookup": bson.M{
+			"from":         ColUser,
+			"localField":   "author_id",
+			"foreignField": "id",
+			"as":           "author",
+		},
+	}, bson.M{
+		"$unwind": "$author",
+	})
+
+	if selector != nil {
+		pipe = append(pipe, bson.M{
+			"$project": selector,
+		})
+	}
+
+	var list []VideoInfo
+	// flag := false
+	err := c.Pipe(pipe).All(&list)
+	for i := 0; i < len(list); i++ {
+		list[i].IsFav = true
+	}
+	return list, err
+}
+
+func videoGet(query interface{})(Video,error){
+	s := mongoSession.Copy()
+	defer s.Close()
+	c := s.DB(DBName).C(ColUser)
+
+	video:=Video{};
+	err:=c.Find(query).One(&video);
+	return video,err;
+}
+
+func initMaxId() {
+	s := mongoSession.Copy()
+	defer s.Close()
+
+	c := s.DB(DBName).C(ColUser)
 	var user User
 	err := c.Find(nil).Sort("-id").One(&user)
 	if err == nil {
@@ -101,4 +154,15 @@ func initMaxId() {
 	} else {
 		userMaxId = 0
 	}
+
+	c = s.DB(DBName).C(ColVideo)
+	var video Video;
+	err = c.Find(nil).Sort("-id").One(&video)
+	if err == nil {
+		videoMaxId = video.VideoID + 1
+	} else {
+		userMaxId = 0
+	}
+	fmt.Println(userMaxId);
+	fmt.Println(videoMaxId);
 }
