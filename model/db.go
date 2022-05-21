@@ -126,7 +126,7 @@ func videoList(query, selector, sort interface{}, limit int) ([]VideoInfo, error
 	// flag := false
 	err := c.Pipe(pipe).All(&list)
 	for i := 0; i < len(list); i++ {
-		list[i].IsFav = true
+		list[i].IsFav = false
 	}
 	return list, err
 }

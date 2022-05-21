@@ -36,16 +36,19 @@ func Feed(c *gin.Context) {
 		}
 		VideoListRes = tmp[0:videosNum]
 	} else {
-		//TODO 数据库无数据，未测试
 		//没有，从数据库拉取
-		if InfoList, err := model.VideoList(time.Now().Unix()); err != nil {
+		if InfoList, err := model.VideoList(0, 30); err != nil {
 			fmt.Println(err)
 		} else {
 			var tmp [30]Video
+			fmt.Println(len(InfoList))
 			for pos, info := range InfoList {
 				if pos == 30 {
 					break
 				}
+				fmt.Println(info.Title)
+				fmt.Println(info.Time)
+				fmt.Println(info.IsFav)
 				tmp[pos] = Video{
 					Id: int64(info.VideoID),
 					Author: User{
@@ -60,6 +63,7 @@ func Feed(c *gin.Context) {
 					FavoriteCount: int64(info.FavCount),
 					CommentCount:  int64(info.ComCount),
 					IsFavorite:    info.IsFav,
+					Title:         info.Title,
 				}
 				//更新到redis
 				client.Do("zadd", key, info.Time, tmp[pos].Encoder())

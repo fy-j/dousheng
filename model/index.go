@@ -2,7 +2,6 @@ package model
 
 import (
 	"dousheng/config"
-	"fmt"
 	mgo "gopkg.in/mgo.v2"
 	"log"
 )
