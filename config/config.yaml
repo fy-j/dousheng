@@ -21,4 +21,7 @@ rabbitMQ:
   user: "admin"
   pwd: "admin"
   vhost: "admin"
+bucket:
+  feed: "userfeed"
+
 

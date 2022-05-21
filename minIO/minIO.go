@@ -6,9 +6,8 @@ import (
 	_ "github.com/minio/minio-go/pkg/encrypt"
 	"github.com/minio/minio-go/v6"
 	"github.com/minio/minio-go/v6/pkg/policy"
+	"io"
 	"log"
-	"net/url"
-	"time"
 )
 
 // 全局变量
@@ -51,12 +50,12 @@ func CreateMinioBucket(bucketName string) {
 	fmt.Printf("Successfully created %s\n", bucketName)
 }
 
-func upload(bucketName string, fileName string, expires time.Duration) string {
-	reqParams := make(url.Values)
-	presignedURL, err := Client.PresignedGetObject(bucketName, fileName, expires, reqParams)
+func Upload(bucketName, objectName string, reader io.Reader, objectSize int64) (ok bool) {
+	n, err := Client.PutObject(bucketName, objectName, reader, objectSize, minio.PutObjectOptions{ContentType: "application/octet-stream"})
 	if err != nil {
-		//zap.L().Error(err.Error())
-		return ""
+		fmt.Println(err)
+		return false
 	}
-	return fmt.Sprintf("%s", presignedURL)
+	fmt.Println("Successfully uploaded bytes: ", n)
+	return true
 }
