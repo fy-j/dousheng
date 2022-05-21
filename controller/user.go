@@ -62,12 +62,14 @@ var AuthMiddleware, _ = jwt.New(
 		// 1.1 登录验证
 		Authenticator: func(c *gin.Context) (interface{}, error) {
 			// 获取用户登录请求
-			var loginReq UserRequest
-			if err := c.ShouldBind(&loginReq); err != nil {
-				return "", jwt.ErrMissingLoginValues
-			}
-			username := loginReq.Name
-			password := loginReq.Pwd
+			//var loginReq UserRequest
+			//if err := c.ShouldBind(&loginReq); err != nil {
+			//	return "", jwt.ErrMissingLoginValues
+			//}
+			//username := loginReq.Name
+			//password := loginReq.Pwd
+			username := c.Query("username")
+			password := c.Query("password")
 
 			// 登录验证,调用Model层UserLogin函数，返回用户信息
 			user_full, err := model.UserLogin(username, password)
@@ -153,15 +155,16 @@ func UserInfoHandler(c *gin.Context) {
 
 // 用户注册逻辑
 func Register(c *gin.Context) {
-	// 接收注册信息
-	var registerReq UserRequest
-	if err := c.ShouldBind(&registerReq); err != nil {
-		c.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
-	name := registerReq.Name
-	pwd := registerReq.Pwd
-
+	//// 接收注册信息
+	//var registerReq UserRequest
+	//if err := c.ShouldBind(&registerReq); err != nil {
+	//	c.AbortWithStatus(http.StatusBadRequest)
+	//	return
+	//}
+	//name := registerReq.Name
+	//pwd := registerReq.Pwd
+	name := c.Query("username")
+	pwd := c.Query("password")
 	// 有效性判断
 	if utf8.RuneCountInString(name) > 32 || utf8.RuneCountInString(pwd) > 32 {
 		c.JSON(http.StatusOK, UserLoginResponse{
