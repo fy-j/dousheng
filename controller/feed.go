@@ -41,14 +41,10 @@ func Feed(c *gin.Context) {
 			fmt.Println(err)
 		} else {
 			var tmp [30]Video
-			fmt.Println(len(InfoList))
 			for pos, info := range InfoList {
 				if pos == 30 {
 					break
 				}
-				fmt.Println(info.Title)
-				fmt.Println(info.Time)
-				fmt.Println(info.IsFav)
 				tmp[pos] = Video{
 					Id: int64(info.VideoID),
 					Author: User{
