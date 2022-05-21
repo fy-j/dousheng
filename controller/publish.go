@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"dousheng/config"
+	"dousheng/minIO"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -16,10 +18,10 @@ type VideoListResponse struct {
 func Publish(c *gin.Context) {
 	token := c.PostForm("token")
 	//用户鉴权
-	if _, exist := usersLoginInfo[token]; !exist {
-		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
-		return
-	}
+	//if _, exist := usersLoginInfo[token]; !exist {
+	//	c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
+	//	return
+	//}
 
 	data, err := c.FormFile("data")
 	if err != nil {
@@ -29,22 +31,24 @@ func Publish(c *gin.Context) {
 		})
 		return
 	}
-
+	//title := c.Query("title")
 	filename := filepath.Base(data.Filename)
 	user := usersLoginInfo[token]
 	finalName := fmt.Sprintf("%d_%s", user.Id, filename)
-	saveFile := filepath.Join("./public/", finalName)
-	if err := c.SaveUploadedFile(data, saveFile); err != nil {
+	fileObj, err := data.Open()
+	if minIO.Upload(config.Conf.Bucket.Feed, finalName, fileObj, data.Size) {
+		//model.VideoAdd()
 		c.JSON(http.StatusOK, Response{
-			StatusCode: 1,
-			StatusMsg:  err.Error(),
+			StatusCode: 200,
+			StatusMsg:  finalName + " uploaded successfully",
 		})
-		return
+	} else {
+		c.JSON(http.StatusOK, Response{
+			StatusCode: 0,
+			StatusMsg:  finalName + "uploaded fill",
+		})
 	}
-	c.JSON(http.StatusOK, Response{
-		StatusCode: 0,
-		StatusMsg:  finalName + " uploaded successfully",
-	})
+
 }
 
 // PublishList all users have same publish video list
