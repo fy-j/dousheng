@@ -2,9 +2,9 @@ package model
 
 import (
 	"dousheng/config"
+	"fmt"
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
-	"fmt"
 )
 
 const (
@@ -90,7 +90,7 @@ func userList(query, selector interface{}) ([]User, error) {
 	return list, err
 }
 
-func videoList(query,selector,sort interface{},limit int)([]VideoInfo,error){
+func videoList(query, selector, sort interface{}, limit int) ([]VideoInfo, error) {
 	s := mongoSession.Copy()
 	defer s.Close()
 	c := s.DB(DBName).C(ColUser)
@@ -132,14 +132,14 @@ func videoList(query,selector,sort interface{},limit int)([]VideoInfo,error){
 	return list, err
 }
 
-func videoGet(query interface{})(Video,error){
+func videoGet(query interface{}) (Video, error) {
 	s := mongoSession.Copy()
 	defer s.Close()
 	c := s.DB(DBName).C(ColUser)
 
-	video:=Video{};
-	err:=c.Find(query).One(&video);
-	return video,err;
+	video := Video{}
+	err := c.Find(query).One(&video)
+	return video, err
 }
 
 func initMaxId() {
@@ -156,13 +156,13 @@ func initMaxId() {
 	}
 
 	c = s.DB(DBName).C(ColVideo)
-	var video Video;
+	var video Video
 	err = c.Find(nil).Sort("-id").One(&video)
 	if err == nil {
 		videoMaxId = video.VideoID + 1
 	} else {
 		userMaxId = 0
 	}
-	fmt.Println(userMaxId);
-	fmt.Println(videoMaxId);
+	fmt.Println(userMaxId)
+	fmt.Println(videoMaxId)
 }
