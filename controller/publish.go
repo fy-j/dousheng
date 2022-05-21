@@ -41,7 +41,6 @@ func Publish(c *gin.Context) {
 		})
 		return
 	}
-
 	c.JSON(http.StatusOK, Response{
 		StatusCode: 0,
 		StatusMsg:  finalName + " uploaded successfully",
