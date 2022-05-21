@@ -2,6 +2,7 @@ package router
 
 import (
 	"dousheng/controller"
+	"dousheng/minIO"
 	"github.com/gin-gonic/gin"
 )
 
@@ -21,6 +22,8 @@ func InitRouter(r *gin.Engine) {
 	apiRouter.POST("/user/login/", controller.Login)
 	apiRouter.POST("/publish/action/", controller.Publish)
 	apiRouter.GET("/publish/list/", controller.PublishList)
+	apiRouter.POST("/upload", minIO.Upload)
+	apiRouter.GET("/download", minIO.Download)
 
 	// extra apis - I
 	apiRouter.POST("/favorite/action/", controller.FavoriteAction)
@@ -32,4 +35,5 @@ func InitRouter(r *gin.Engine) {
 	apiRouter.POST("/relation/action/", controller.RelationAction)
 	apiRouter.GET("/relation/follow/list/", controller.FollowList)
 	apiRouter.GET("/relation/follower/list/", controller.FollowerList)
+
 }

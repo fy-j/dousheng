@@ -9,6 +9,8 @@ minIO:
   endpoint: "119.23.252.204:9000"
   username: "username"
   password: "password"
+  accessKeyID: "minioadmin"
+  secretAccessKey: "minioadmin"
 mongo:
   name: "dousheng"
   host: "125.73.58.176"

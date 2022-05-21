@@ -2,8 +2,10 @@ package minIO
 
 import (
 	"dousheng/config"
+	"fmt"
 	_ "github.com/minio/minio-go/pkg/encrypt"
 	"github.com/minio/minio-go/v6"
+	"github.com/minio/minio-go/v6/pkg/policy"
 	"log"
 )
 
@@ -20,4 +22,29 @@ func InitMinIO(cfg *config.MinIOConfig) {
 		log.Fatalln(err)
 		return
 	}
+	//MinIO桶名称不能带下划线、只能小写字母
+	CreateMinioBucket("userfeed")
+}
+
+//创建名称为bucketName 的视频流桶
+func CreateMinioBucket(bucketName string) {
+	location := "us-east-1"
+	err := Client.MakeBucket(bucketName, location)
+	if err != nil {
+		exist, err := Client.BucketExists(bucketName)
+		fmt.Println(exist)
+		if err != nil && exist {
+			fmt.Printf("We already own %s\n", bucketName)
+		} else {
+			fmt.Println(err, exist)
+			return
+		}
+	}
+	err = Client.SetBucketPolicy(bucketName, policy.BucketPolicyReadWrite)
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Printf("Successfully created %s\n", bucketName)
 }
