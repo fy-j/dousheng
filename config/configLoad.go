@@ -37,14 +37,13 @@ type MinIOConfig struct {
 
 //mongodb config struct
 type MongoConfig struct {
-	DBname string ` json:"name" `
+	Name   string ` json:"name" `
 	Host   string ` json:"host" `
-	Port   string ` json:"port" `
 	User   string ` json:"user" `
 	Pwd    string ` json:"pwd"  `
 }
 
-func Init() error {
+func init() {
 	viper.SetConfigFile("config/config.yaml")
 
 	viper.WatchConfig()
@@ -60,5 +59,4 @@ func Init() error {
 	if err := viper.Unmarshal(&Conf); err != nil {
 		panic(fmt.Errorf("unmarshal to Conf failed, err:%v", err))
 	}
-	return err
 }

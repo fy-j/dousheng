@@ -1,8 +1,8 @@
 port: 8080
 redis:
-  host: "122.9.122.77"
-  port: 8635
-  password: "Bytedance@2022"
+  host: "119.23.252.204"
+  port: 6379
+  password: ""
   db: 0
   pool_size: 100
 minIO:
@@ -13,7 +13,6 @@ minIO:
   secretAccessKey: "minioadmin"
 mongo:
   name: "dousheng"
-  host: "125.73.58.176"
-  post: 5208
+  host: "125.73.58.176:5208"
   user: "chaiquan"
-  pwd:  ""
+  pwd:  "qwer1234"

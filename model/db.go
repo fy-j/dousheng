@@ -19,7 +19,7 @@ var (
 )
 
 var (
-	DBName = config.Conf.Mongo.DBname
+	DBName = config.Conf.Mongo.Name
 )
 
 func getCollection(col string) (collection *mgo.Collection, cls func()) {
@@ -90,4 +90,15 @@ func userList(query, selector interface{}) ([]User, error) {
 }
 
 func initMaxId() {
+	s := mongoSession.Copy()
+	defer s.Close()
+	c := s.DB(DBName).C(ColUser)
+
+	var user User
+	err := c.Find(nil).Sort("-id").One(&user)
+	if err == nil {
+		userMaxId = user.UserId + 1
+	} else {
+		userMaxId = 0
+	}
 }
