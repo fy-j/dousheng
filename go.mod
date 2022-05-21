@@ -9,6 +9,7 @@ require (
 	github.com/minio/minio-go v3.0.2+incompatible
 	github.com/minio/minio-go/v6 v6.0.57
 	github.com/spf13/viper v1.11.0
+	github.com/streadway/amqp v1.0.0
 )
 
 require (

@@ -16,3 +16,9 @@ mongo:
   host: "125.73.58.176:5208"
   user: "chaiquan"
   pwd:  "qwer1234"
+rabbitMQ:
+  host: "114.55.177.229:5672"
+  user: "admin"
+  pwd: "admin"
+  vhost: "admin"
+
