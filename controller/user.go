@@ -61,7 +61,7 @@ var AuthMiddleware, _ = jwt.New(
 		// 1. 用户登录流
 		// 1.1 登录验证
 		Authenticator: func(c *gin.Context) (interface{}, error) {
-			// 获取用户登录请求
+			//获取用户登录请求
 			//var loginReq UserRequest
 			//if err := c.ShouldBind(&loginReq); err != nil {
 			//	return "", jwt.ErrMissingLoginValues
@@ -155,7 +155,7 @@ func UserInfoHandler(c *gin.Context) {
 
 // 用户注册逻辑
 func Register(c *gin.Context) {
-	//// 接收注册信息
+	// 接收注册信息
 	//var registerReq UserRequest
 	//if err := c.ShouldBind(&registerReq); err != nil {
 	//	c.AbortWithStatus(http.StatusBadRequest)

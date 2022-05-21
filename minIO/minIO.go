@@ -7,6 +7,8 @@ import (
 	"github.com/minio/minio-go/v6"
 	"github.com/minio/minio-go/v6/pkg/policy"
 	"log"
+	"net/url"
+	"time"
 )
 
 // 全局变量
@@ -47,4 +49,14 @@ func CreateMinioBucket(bucketName string) {
 		return
 	}
 	fmt.Printf("Successfully created %s\n", bucketName)
+}
+
+func upload(bucketName string, fileName string, expires time.Duration) string {
+	reqParams := make(url.Values)
+	presignedURL, err := Client.PresignedGetObject(bucketName, fileName, expires, reqParams)
+	if err != nil {
+		//zap.L().Error(err.Error())
+		return ""
+	}
+	return fmt.Sprintf("%s", presignedURL)
 }
