@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"gopkg.in/mgo.v2/bson"
 	"time"
 )
@@ -68,6 +69,25 @@ func VideoMegByID(video_id int) (Video, error) {
 	})
 }
 
+//is_fav is true if user_id's fav has video_id
+func VideoMegByUserID(user_id, video_id int) (Video, error) {
+	video, err := VideoMegByID(video_id)
+	if err != nil {
+		return video, err
+	}
+	user, err := UserGetById(user_id)
+	if err != nil {
+		return video, err
+	}
+	for _, fav := range user.FavVideo {
+		if fav == video_id {
+			video.IsFav = true
+			break
+		}
+	}
+	return video, err
+}
+
 //add video,return video id,if add wrong ,return -1 and error
 func VideoAdd(user_id int, coverUrl, playUrl, title string) (int, error) {
 	var video Video
@@ -83,4 +103,64 @@ func VideoAdd(user_id int, coverUrl, playUrl, title string) (int, error) {
 		return -1, err
 	}
 	return video.VideoID, err
+}
+
+//return whether the video is user fav video
+func VideoIsFav(user_id, video_id int) (bool, error) {
+	user, err := userGet(bson.M{"id": user_id}, nil)
+	if err != nil {
+		return false, err
+	}
+	for _, num := range user.FavVideo {
+		if num == video_id {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+//video fav action,action 1 stand for fav,2 stand for cancel
+func VideoFavAction(user_id, video_id, action int) error {
+	if action != 1 && action != 2 {
+		return errors.New("action wrong")
+	}
+	if action == 1 {
+		err := changeData(ColUser, bson.M{"id": user_id}, bson.M{"$addToSet": bson.M{"fav_video": video_id}})
+		if err != nil {
+			return err
+		}
+		err = changeData(ColVideo, bson.M{"id": video_id}, bson.M{"$inc": bson.M{"favorite_count": 1}})
+	} else {
+		err := changeData(ColUser, bson.M{"id": user_id}, bson.M{"$pull": bson.M{"fav_video": video_id}})
+		if err != nil {
+			return err
+		}
+		err = changeData(ColVideo, bson.M{"id": video_id}, bson.M{"$inc": bson.M{"favorite_count": -1}})
+	}
+	return nil
+}
+
+//get user fav video list
+func VideoFavList(user_id int) ([]VideoInfo, error) {
+	user, err := UserGetById(user_id)
+	if err != nil {
+		return []VideoInfo{}, err
+	}
+	list, err := videoList(
+		bson.M{
+			"id": bson.M{
+				"$in": user.FavVideo,
+			}},
+		nil,
+		bson.M{
+			"post_time": -1,
+		},
+		1000)
+	if err != nil {
+		return list, err
+	}
+	for i := 0; i < len(list); i++ {
+		list[i].IsFav = true
+	}
+	return list, err
 }

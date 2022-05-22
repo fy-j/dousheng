@@ -89,3 +89,78 @@ func UserLogin(name, pwd string) (User, error) {
 	}
 	return userGet(query, nil)
 }
+
+//judge user whther is author fans
+func UserIsFollowers(user_id, author_id int) (bool, error) {
+	user, err := UserGetById(user_id)
+	if err != nil {
+		return false, err
+	}
+	for _, num := range user.Follower {
+		if num == author_id {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+//follow or cancel follow author,action 1 stand for follow,2 stand for cancel
+func UserFollow(user_id, author_id, action int) error {
+	if action != 1 && action != 2 {
+		return errors.New("action must be 1 or 2")
+	}
+	if action == 1 {
+		err := changeData(ColUser, bson.M{"id": user_id}, bson.M{"$addToSet": bson.M{"follower": author_id}})
+		if err != nil {
+			return err
+		}
+		err = changeData(ColUser, bson.M{"id": user_id}, bson.M{"$inc": bson.M{"follow_count": 1}})
+		if err != nil {
+			return err
+		}
+	} else {
+		err := changeData(ColUser, bson.M{"id": author_id}, bson.M{"$pull": bson.M{"fans": user_id}})
+		if err != nil {
+			return err
+		}
+		err = changeData(ColUser, bson.M{"id": author_id}, bson.M{"$inc": bson.M{"follower_count": -1}})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+//user follow list
+func UserFollowList(user_id int) ([]UserInfo, error) {
+	user, err := userGet(bson.M{"id": user_id}, nil)
+	if err != nil {
+		return []UserInfo{}, err
+	}
+	var list []UserInfo
+	for _, now := range user.Follower {
+		temp, err := UserInfoById(now)
+		if err != nil {
+			return list, err
+		}
+		list = append(list, temp)
+	}
+	return list, err
+}
+
+//user follow list
+func UserFansList(user_id int) ([]UserInfo, error) {
+	user, err := userGet(bson.M{"id": user_id}, nil)
+	if err != nil {
+		return []UserInfo{}, err
+	}
+	var list []UserInfo
+	for _, now := range user.Fans {
+		temp, err := UserInfoById(now)
+		if err != nil {
+			return list, err
+		}
+		list = append(list, temp)
+	}
+	return list, err
+}
