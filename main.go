@@ -26,7 +26,8 @@ func main() {
 
 	//ampq 初始化
 	mq.InitAmqp(&config.Conf.RabbitMQ)
-
+	defer mq.PublishChannel.Close()
+	defer mq.AmqpClient.Close()
 	//路由初始化
 	r := gin.Default()
 
