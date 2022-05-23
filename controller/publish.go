@@ -3,10 +3,14 @@ package controller
 import (
 	"dousheng/config"
 	"dousheng/minIO"
+	"dousheng/mq"
 	"fmt"
+	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
+	"github.com/streadway/amqp"
 	"net/http"
 	"path/filepath"
+	"time"
 )
 
 type VideoListResponse struct {
@@ -16,7 +20,10 @@ type VideoListResponse struct {
 
 // Publish check token then save upload file to public directory
 func Publish(c *gin.Context) {
-	token := c.PostForm("token")
+	// 从Token中获取user_id
+	claims := jwt.ExtractClaims(c)
+	uid := int(claims[identityKey].(float64))
+	title := c.PostForm("title")
 	data, err := c.FormFile("data")
 	if err != nil {
 		c.JSON(http.StatusOK, Response{
@@ -25,13 +32,23 @@ func Publish(c *gin.Context) {
 		})
 		return
 	}
-	//title := c.Query("title")
+	fmt.Println(title)
 	filename := filepath.Base(data.Filename)
-	user := usersLoginInfo[token]
-	finalName := fmt.Sprintf("%d_%s", user.Id, filename)
+	finalName := fmt.Sprintf("%d_%s", uid, filename)
 	fileObj, err := data.Open()
 	if minIO.Upload(config.Conf.Bucket.Feed, finalName, fileObj, data.Size) {
 		//model.VideoAdd()
+		err = mq.PublishChannel.Publish("publishExchange", "publish", true, false,
+			amqp.Publishing{
+				Timestamp:    time.Now(),
+				DeliveryMode: amqp.Persistent, //Msg set as persistent
+				ContentType:  "text/plain",
+				Body: mq.StructToBytes(mq.PublishMsg{
+					UserId:   uid,
+					FileName: finalName,
+					Title:    title,
+				}),
+			})
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 0,
 			StatusMsg:  finalName + " uploaded successfully",
