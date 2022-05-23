@@ -8,6 +8,8 @@ import (
 	"github.com/minio/minio-go/v6/pkg/policy"
 	"io"
 	"log"
+	"net/url"
+	"time"
 )
 
 // 全局变量
@@ -58,4 +60,13 @@ func Upload(bucketName, objectName string, reader io.Reader, objectSize int64) (
 	}
 	fmt.Println("Successfully uploaded bytes: ", n)
 	return true
+}
+
+func GetURL(fileName string, expires time.Duration) string {
+	reqParams := make(url.Values)
+	presignedURL, err := Client.PresignedGetObject(config.Conf.Bucket.Feed, fileName, expires, reqParams)
+	if err != nil {
+		return ""
+	}
+	return fmt.Sprintf("%s", presignedURL)
 }
