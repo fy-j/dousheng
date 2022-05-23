@@ -2,8 +2,10 @@ package model
 
 import (
 	"dousheng/config"
+	"fmt"
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+	"time"
 )
 
 const (
@@ -131,6 +133,44 @@ func videoList(query, selector, sort interface{}, limit int) ([]VideoInfo, error
 	return list, err
 }
 
+func assList(query, selector, sort interface{}) ([]AssessmentInfo, error) {
+	s := mongoSession.Copy()
+	defer s.Close()
+	c := s.DB(DBName).C(ColAssessment)
+	pipe := []bson.M{
+		{
+			"$match": query,
+		},
+		{
+			"$sort": sort,
+		},
+	}
+	pipe = append(pipe, bson.M{
+		"$lookup": bson.M{
+			"from":         ColUser,
+			"localField":   "author_id",
+			"foreignField": "id",
+			"as":           "author",
+		},
+	}, bson.M{
+		"$unwind": "$author",
+	})
+
+	if selector != nil {
+		pipe = append(pipe, bson.M{
+			"$project": selector,
+		})
+	}
+
+	var list []AssessmentInfo
+	err := c.Pipe(pipe).All(&list)
+	for i := 0; i < len(list); i++ {
+		_, month, day := time.Unix(list[i].Time, 0).Date()
+		list[i].Date = fmt.Sprintf("%d-%d", month, day)
+	}
+	return list, err
+}
+
 func videoGet(query interface{}) (Video, error) {
 	s := mongoSession.Copy()
 	defer s.Close()
@@ -161,5 +201,14 @@ func initMaxId() {
 		videoMaxId = video.VideoID + 1
 	} else {
 		userMaxId = 0
+	}
+
+	c = s.DB(DBName).C(ColAssessment)
+	var ass Assessment
+	err = c.Find(nil).Sort("-id").One(&ass)
+	if err == nil {
+		assMaxId = ass.AssID + 1
+	} else {
+		assMaxId = 0
 	}
 }
