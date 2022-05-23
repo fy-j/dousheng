@@ -164,3 +164,18 @@ func VideoFavList(user_id int) ([]VideoInfo, error) {
 	}
 	return list, err
 }
+
+//return whether the video author is followed by user
+func VideoAuthorIsFollowed(user_id, video_id int) (bool, error) {
+	user, err := userGet(bson.M{"id": user_id}, nil)
+	video, err := VideoMegByID(video_id)
+	if err != nil {
+		return false, err
+	}
+	for _, num := range user.Follower {
+		if num == video.AuthorID {
+			return true, nil
+		}
+	}
+	return false, nil
+}
