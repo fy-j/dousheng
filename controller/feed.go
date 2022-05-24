@@ -31,7 +31,7 @@ func Feed(c *gin.Context) {
 	client := redis.Clients
 	key := "feedVideos"
 	var VideoListRes []Video
-	redis拉取
+	//redis拉取
 	if videosNum := client.ZCard(key).Val(); videosNum != 0 {
 		//有
 		//获取到序列化的字符串数组
