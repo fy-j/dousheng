@@ -12,7 +12,7 @@ type PublishMsg struct {
 	Title    string `json:"title"`
 }
 
-func StructToBytes(v PublishMsg) []byte {
+func StructToBytes(v interface{}) []byte {
 	var buffer bytes.Buffer
 	encoder := gob.NewEncoder(&buffer)
 	err := encoder.Encode(v)
@@ -23,7 +23,7 @@ func StructToBytes(v PublishMsg) []byte {
 }
 
 //Video反序列化
-func BytesToStruct(byte []byte) PublishMsg {
+func BytesToStruct(byte []byte) interface{} {
 	var msg PublishMsg
 	decoder := gob.NewDecoder(bytes.NewReader(byte))
 	err := decoder.Decode(&msg)

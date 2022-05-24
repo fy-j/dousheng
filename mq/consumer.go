@@ -16,7 +16,7 @@ func Consume() {
 	}
 	v, ok := <-deliveries
 	if ok {
-		data := BytesToStruct(v.Body)
+		data := BytesToStruct(v.Body).(PublishMsg)
 		fmt.Println("收到消息", data)
 		url := minIO.GetURL(data.FileName, time.Second*24*60*60)
 		fmt.Println(url)

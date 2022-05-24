@@ -77,6 +77,16 @@ func PublishList(c *gin.Context) {
 	claims := jwt.ExtractClaims(c)
 	uid := int(claims[identityKey].(float64))
 	fmt.Println(uid)
+	//result, err := redis.Clients.Get(redis.Generate(redis.PUBLISHEDLIST, strconv.FormatInt(int64(uid), 10))).Result()
+	//if result != "" {
+	//	c.JSON(http.StatusOK, VideoListResponse{
+	//		Response: Response{
+	//			StatusCode: 0,
+	//			StatusMsg:  "success",
+	//		},
+	//		VideoList: mq.BytesToStruct(),
+	//	})
+	//}
 	id, err := model.VideoListByUserID(uid, time.Now().Unix(), 30)
 	if err != nil {
 		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: err.Error()})
