@@ -3,6 +3,7 @@ package controller
 import (
 	"dousheng/config"
 	"dousheng/minIO"
+	"dousheng/model"
 	"dousheng/mq"
 	"fmt"
 	jwt "github.com/appleboy/gin-jwt/v2"
@@ -15,14 +16,22 @@ import (
 
 type VideoListResponse struct {
 	Response
-	VideoList []Video `json:"video_list"`
+	VideoList []model.VideoInfo `json:"video_list"`
 }
 
 // Publish check token then save upload file to public directory
 func Publish(c *gin.Context) {
 	// 从Token中获取user_id
-	claims := jwt.ExtractClaims(c)
-	uid := int(claims[identityKey].(float64))
+	//claims := jwt.ExtractClaims(c)
+	//uid := int(claims[identityKey].(float64))
+	token := c.PostForm("token")
+	uid, err := GetUserIdFromToken(token)
+	if err != nil {
+		c.JSON(http.StatusOK, Response{
+			StatusCode: 1,
+			StatusMsg:  err.Error(),
+		})
+	}
 	title := c.PostForm("title")
 	data, err := c.FormFile("data")
 	if err != nil {
@@ -64,10 +73,19 @@ func Publish(c *gin.Context) {
 
 // PublishList all users have same publish video list
 func PublishList(c *gin.Context) {
+	// 从Token中获取user_id
+	claims := jwt.ExtractClaims(c)
+	uid := int(claims[identityKey].(float64))
+	fmt.Println(uid)
+	id, err := model.VideoListByUserID(uid, time.Now().Unix(), 30)
+	if err != nil {
+		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: err.Error()})
+	}
 	c.JSON(http.StatusOK, VideoListResponse{
 		Response: Response{
 			StatusCode: 0,
+			StatusMsg:  "success",
 		},
-		VideoList: DemoVideos,
+		VideoList: id,
 	})
 }
