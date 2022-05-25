@@ -21,13 +21,6 @@ type FeedResponse struct {
 
 // Feed same demo video list for every request
 func Feed(c *gin.Context) {
-	//token := c.Query("token")
-	//if token != "" {
-	//	// 从Token中获取user_id
-	//	claims := jwt.ExtractClaims(c)
-	//	uid := int(claims[identityKey].(float64))
-	//	fmt.Println(uid)
-	//}
 	client := redis.Clients
 	key := redis.Generate("feedVideos")
 	var VideoListRes []Video
