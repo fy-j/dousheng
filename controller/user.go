@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"dousheng/model"
 	"encoding/hex"
+	jwt2 "github.com/golang-jwt/jwt/v4"
 	"net/http"
 	"time"
 	"unicode/utf8"
@@ -182,4 +183,15 @@ func Register(c *gin.Context) {
 		// 请求重定向(307),进行用户登录
 		c.Redirect(http.StatusTemporaryRedirect, "/douyin/user/login/?username="+name+"&password="+pwd)
 	}
+}
+
+func GetUserIdFromToken(tokenString string) (int, error) {
+	token, err := jwt2.Parse(tokenString, func(t *jwt2.Token) (interface{}, error) {
+		return []byte("summerCamp"), nil
+	})
+	if err != nil {
+		return 0, err
+	}
+	claims := token.Claims.(jwt2.MapClaims)
+	return int(claims["id"].(float64)), nil
 }

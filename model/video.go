@@ -33,7 +33,7 @@ type VideoInfo struct {
 
 //get user self post video list
 func VideoListByUserID(user_id int, times int64, limit int) ([]VideoInfo, error) {
-	list, err := videoList(bson.M{"author_id": user_id, "post_time": bson.M{"$gt": times}}, nil, bson.M{"post_time": -1}, limit)
+	list, err := videoList(bson.M{"author_id": user_id, "post_time": bson.M{"$lt": times}}, nil, bson.M{"post_time": -1}, limit)
 	if err != nil {
 		return list, err
 	}

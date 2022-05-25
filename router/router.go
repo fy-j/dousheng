@@ -20,8 +20,8 @@ func InitRouter(r *gin.Engine) {
 	apiRouter.POST("/user/register/", controller.Register)
 	apiRouter.POST("/user/login/", controller.AuthMiddleware.LoginHandler)
 	apiRouter.GET("/user", controller.AuthMiddleware.MiddlewareFunc(), controller.UserInfoHandler)
-	apiRouter.POST("/publish/action/", controller.AuthMiddleware.MiddlewareFunc(), controller.Publish)
-	apiRouter.GET("/publish/list/", controller.PublishList)
+	apiRouter.POST("/publish/action/", controller.Publish)
+	apiRouter.GET("/publish/list/", controller.AuthMiddleware.MiddlewareFunc(), controller.PublishList)
 
 	// extra apis - I
 	apiRouter.POST("/favorite/action/", controller.FavoriteAction)

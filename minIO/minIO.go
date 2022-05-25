@@ -64,6 +64,7 @@ func Upload(bucketName, objectName string, reader io.Reader, objectSize int64) (
 
 func GetURL(fileName string, expires time.Duration) string {
 	reqParams := make(url.Values)
+	reqParams.Set("response-content-disposition", "video/mpeg4")
 	presignedURL, err := Client.PresignedGetObject(config.Conf.Bucket.Feed, fileName, expires, reqParams)
 	if err != nil {
 		return ""
