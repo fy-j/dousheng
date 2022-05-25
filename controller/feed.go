@@ -6,10 +6,10 @@ import (
 	"dousheng/redis"
 	"encoding/gob"
 	"fmt"
-	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -21,13 +21,13 @@ type FeedResponse struct {
 
 // Feed same demo video list for every request
 func Feed(c *gin.Context) {
-	token := c.Query("token")
-	if token != "" {
-		// 从Token中获取user_id
-		claims := jwt.ExtractClaims(c)
-		uid := int(claims[identityKey].(float64))
-		fmt.Println(uid)
-	}
+	//token := c.Query("token")
+	//if token != "" {
+	//	// 从Token中获取user_id
+	//	claims := jwt.ExtractClaims(c)
+	//	uid := int(claims[identityKey].(float64))
+	//	fmt.Println(uid)
+	//}
 	client := redis.Clients
 	key := redis.Generate("feedVideos")
 	var VideoListRes []Video
@@ -76,62 +76,56 @@ func Feed(c *gin.Context) {
 			VideoListRes = tmp[0:len(InfoList)]
 		}
 	}
-	//claims := jwt.ExtractClaims(c)
-	//uid := int(claims[identityKey].(float64))
-	//fmt.Println(uid)
-	//token := c.Query("token")
-	//若携带token,对应视频点赞是否点赞，作者是否关注
-	//if token != "" {
-	//	//解析token得到当前用户信息(有bug)
-	//	claims := jwt.ExtractClaims(c)
-	//	uid := int(claims[identityKey].(float64))
-	//	fmt.Println(uid)
-	//	for _, video := range VideoListRes {
-	//		key = redis.Generate(strconv.FormatInt(video.Id, 10) + strconv.Itoa(uid))
-	//		//查redis
-	//		isFavRes := client.Get(key).Val()
-	//		if isFavRes != "" {
-	//			//有，更新video信息
-	//			if isFavRes == "true" {
-	//				video.IsFavorite = true
-	//			} else if isFavRes == "false" {
-	//				video.IsFavorite = false
-	//			}
-	//		} else {
-	//			//没有，数据库查询
-	//			res, _ := model.VideoIsFav(uid, int(video.Id))
-	//			video.IsFavorite = res
-	//			//更新到redis，设置ttl
-	//			if res {
-	//				client.Set(key, string("true"), time.Minute)
-	//			} else {
-	//				client.Set(key, string("false"), time.Minute)
-	//			}
-	//		}
-	//		//关注信息
-	//		key = redis.Generate(strconv.FormatInt(video.Author.Id, 10) + strconv.Itoa(uid))
-	//		isFollowed := client.Get(key).Val()
-	//		if isFollowed != "" {
-	//			//有，更新video信息
-	//			if isFollowed == "true" {
-	//				video.Author.IsFollow = true
-	//			} else if isFollowed == "false" {
-	//				video.Author.IsFollow = false
-	//			}
-	//		} else {
-	//			//没有，数据库查询
-	//			res, _ := model.VideoAuthorIsFollowed(uid, int(video.Id))
-	//			video.Author.IsFollow = res
-	//			//更新到redis，设置ttl
-	//			if res {
-	//				client.Set(key, string("true"), time.Minute)
-	//			} else {
-	//				client.Set(key, string("false"), time.Minute)
-	//			}
-	//		}
-	//	}
-	//
-	//}
+	token := c.Query("token")
+	if token != "" {
+		//解析token得到当前用户信息(有bug)
+		uid, _ := GetUserIdFromToken(token)
+		for _, video := range VideoListRes {
+			key = redis.Generate(strconv.FormatInt(video.Id, 10) + strconv.Itoa(uid))
+			//查redis
+			isFavRes := client.Get(key).Val()
+			if isFavRes != "" {
+				//有，更新video信息
+				if isFavRes == "true" {
+					video.IsFavorite = true
+				} else if isFavRes == "false" {
+					video.IsFavorite = false
+				}
+			} else {
+				//没有，数据库查询
+				res, _ := model.VideoIsFav(uid, int(video.Id))
+				video.IsFavorite = res
+				//更新到redis，设置ttl
+				if res {
+					client.Set(key, string("true"), time.Minute)
+				} else {
+					client.Set(key, string("false"), time.Minute)
+				}
+			}
+			//关注信息
+			key = redis.Generate(strconv.FormatInt(video.Author.Id, 10) + strconv.Itoa(uid))
+			isFollowed := client.Get(key).Val()
+			if isFollowed != "" {
+				//有，更新video信息
+				if isFollowed == "true" {
+					video.Author.IsFollow = true
+				} else if isFollowed == "false" {
+					video.Author.IsFollow = false
+				}
+			} else {
+				//没有，数据库查询
+				res, _ := model.VideoAuthorIsFollowed(uid, int(video.Id))
+				video.Author.IsFollow = res
+				//更新到redis，设置ttl
+				if res {
+					client.Set(key, string("true"), time.Minute)
+				} else {
+					client.Set(key, string("false"), time.Minute)
+				}
+			}
+		}
+
+	}
 	c.JSON(http.StatusOK, FeedResponse{
 		Response:  Response{StatusCode: 0},
 		VideoList: VideoListRes,
