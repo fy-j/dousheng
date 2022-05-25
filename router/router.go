@@ -16,7 +16,7 @@ func InitRouter(r *gin.Engine) {
 	apiRouter.GET("/redis_test", controller.RedisTest)
 
 	// basic apis
-	apiRouter.GET("/feed/", controller.Feed)
+	apiRouter.GET("/feed/", controller.AuthMiddleware.MiddlewareFunc(), controller.Feed)
 	apiRouter.POST("/user/register/", controller.Register)
 	apiRouter.POST("/user/login/", controller.AuthMiddleware.LoginHandler)
 	apiRouter.GET("/user", controller.AuthMiddleware.MiddlewareFunc(), controller.UserInfoHandler)
