@@ -26,6 +26,7 @@ func Consume() {
 		//redis删除
 		client := redis.Clients
 		client.Del(redis.Generate(redis.PUBLISHEDLIST, strconv.FormatInt(int64(data.UserId), 10)))
+		client.Del(redis.Generate("feedVideos"))
 		if err := v.Ack(true); err != nil {
 			fmt.Println(err.Error())
 		}
