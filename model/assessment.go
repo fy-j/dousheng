@@ -13,6 +13,8 @@ type Assessment struct {
 	Content  string        `bson:"content" json:"content"`
 	Time     int64         `bson:"date" json:"date"`
 }
+
+//ass info for app
 type AssessmentInfo struct {
 	ID       bson.ObjectId `bson:"_id,omitempty" json:"_id,omitempty"`
 	AssID    int           `bson:"id" json:"id"`
@@ -42,10 +44,19 @@ func AssAdd(user_id, video_id int, content string) error {
 	ass.AssID = assMaxId
 	ass.VideoID = video_id
 	assMaxId++
-	return insertData(ColAssessment, ass)
+	err := insertData(ColAssessment, ass)
+	if err != nil {
+		return err
+	}
+	err = changeData(ColVideo, bson.M{"id": video_id}, bson.M{"$inc": bson.M{"comment_count": 1}})
+	return err
 }
 
 //delete assessment
-func AssDel(ass_id int) error {
+func AssDel(video_id, ass_id int) error {
+	err := changeData(ColVideo, bson.M{"id": video_id}, bson.M{"$inc": bson.M{"comment_count": -1}})
+	if err != nil {
+		return err
+	}
 	return deleteOne(ColAssessment, bson.M{"id": ass_id})
 }
