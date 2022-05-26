@@ -74,7 +74,7 @@ func Feed(c *gin.Context) {
 		//解析token得到当前用户信息(有bug)
 		uid, _ := GetUserIdFromToken(token)
 		for _, video := range VideoListRes {
-			key = redis.Generate(strconv.FormatInt(video.Id, 10), strconv.Itoa(uid))
+			key = redis.Generate(redis.ISFACRES, strconv.FormatInt(video.Id, 10), strconv.Itoa(uid))
 			//查redis
 			isFavRes := client.Get(key).Val()
 			if isFavRes != "" {
@@ -96,7 +96,7 @@ func Feed(c *gin.Context) {
 				}
 			}
 			//关注信息
-			key = redis.Generate(strconv.FormatInt(video.Author.Id, 10), strconv.Itoa(uid))
+			key = redis.Generate(redis.ISFOLLOWED, strconv.FormatInt(video.Author.Id, 10), strconv.Itoa(uid))
 			isFollowed := client.Get(key).Val()
 			if isFollowed != "" {
 				//有，更新video信息

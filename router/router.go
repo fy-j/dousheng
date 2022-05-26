@@ -2,8 +2,6 @@ package router
 
 import (
 	"dousheng/controller"
-	"dousheng/model"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -12,8 +10,6 @@ func InitRouter(r *gin.Engine) {
 	r.Static("/static", "./public")
 
 	apiRouter := r.Group("/douyin")
-
-	apiRouter.POST("/test/", model.AddFavorite)
 
 	// basic apis
 	apiRouter.GET("/feed/", controller.Feed)
