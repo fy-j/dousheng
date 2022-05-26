@@ -109,5 +109,4 @@ func PublishList(c *gin.Context) {
 	} else {
 		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: err2.Error()})
 	}
-
 }

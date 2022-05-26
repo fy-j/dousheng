@@ -2,6 +2,7 @@ package router
 
 import (
 	"dousheng/controller"
+	"dousheng/model"
 
 	"github.com/gin-gonic/gin"
 )
@@ -12,8 +13,7 @@ func InitRouter(r *gin.Engine) {
 
 	apiRouter := r.Group("/douyin")
 
-	//redis test api
-	apiRouter.GET("/redis_test", controller.RedisTest)
+	apiRouter.POST("/test/", model.AddFavorite)
 
 	// basic apis
 	apiRouter.GET("/feed/", controller.Feed)
