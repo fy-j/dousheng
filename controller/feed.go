@@ -24,6 +24,12 @@ func Feed(c *gin.Context) {
 	client := redis.Clients
 	key := redis.Generate("feedVideos")
 	var VideoListRes []Video
+	latest := c.Query("latest_time")
+	latestTime := time.Now().Unix()
+	if latest != "" {
+		latestTime, _ = strconv.ParseInt(latest, 10, 64)
+	}
+
 	//redis拉取
 	if videosNum := client.ZCard(key).Val(); videosNum != 0 {
 		//有
@@ -39,7 +45,7 @@ func Feed(c *gin.Context) {
 
 	} else {
 		//没有，从数据库拉取
-		if InfoList, err := model.VideoList(0, 30); err != nil {
+		if InfoList, err := model.VideoList(latestTime, 30); err != nil {
 			fmt.Println(err)
 		} else {
 			var tmp [30]Video
@@ -119,10 +125,13 @@ func Feed(c *gin.Context) {
 		}
 
 	}
+	videoId := VideoListRes[len(VideoListRes)-1].Id
+	firstVideo, _ := model.VideoMegByID(int(videoId))
+	//fmt.Println(firstVideo.Time)
 	c.JSON(http.StatusOK, FeedResponse{
 		Response:  Response{StatusCode: 0},
 		VideoList: VideoListRes,
-		NextTime:  time.Now().Unix(),
+		NextTime:  firstVideo.Time,
 	})
 }
 
