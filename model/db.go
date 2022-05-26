@@ -211,4 +211,5 @@ func initMaxId() {
 	} else {
 		assMaxId = 0
 	}
+
 }

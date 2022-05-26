@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+//video store in database
 type Video struct {
 	ID       bson.ObjectId `bson:"_id,omitempty" json:"_id,omitempty"`
 	AuthorID int           `bson:"author_id" json:"author_id"`
@@ -19,6 +20,7 @@ type Video struct {
 	Title    string        `bson:"title" json:"title"`
 }
 
+//video info to app
 type VideoInfo struct {
 	VideoID  int      `bson:"id" json:"id"`
 	PlayUrl  string   `bson:"play_url" json:"play_url"`
@@ -33,7 +35,7 @@ type VideoInfo struct {
 
 //get user self post video list
 func VideoListByUserID(user_id int, times int64, limit int) ([]VideoInfo, error) {
-	list, err := videoList(bson.M{"author_id": user_id, "post_time": bson.M{"$lt": times}}, nil, bson.M{"post_time": -1}, limit)
+	list, err := videoList(bson.M{"author_id": user_id, "post_time": bson.M{"$gt": times}}, nil, bson.M{"post_time": -1}, limit)
 	if err != nil {
 		return list, err
 	}
@@ -130,12 +132,18 @@ func VideoFavAction(user_id, video_id, action int) error {
 			return err
 		}
 		err = changeData(ColVideo, bson.M{"id": video_id}, bson.M{"$inc": bson.M{"favorite_count": 1}})
+		if err != nil {
+			return err
+		}
 	} else {
 		err := changeData(ColUser, bson.M{"id": user_id}, bson.M{"$pull": bson.M{"fav_video": video_id}})
 		if err != nil {
 			return err
 		}
 		err = changeData(ColVideo, bson.M{"id": video_id}, bson.M{"$inc": bson.M{"favorite_count": -1}})
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
