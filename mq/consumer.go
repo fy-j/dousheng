@@ -6,6 +6,7 @@ import (
 	"dousheng/redis"
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 )
 
@@ -24,7 +25,7 @@ func Consume() {
 		model.VideoAdd(data.UserId, "", url, data.Title)
 		//redis删除
 		client := redis.Clients
-		client.Del(redis.Generate("feedVideos"))
+		client.Del(redis.Generate(redis.PUBLISHEDLIST, strconv.FormatInt(int64(data.UserId), 10)))
 		if err := v.Ack(true); err != nil {
 			fmt.Println(err.Error())
 		}
