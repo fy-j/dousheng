@@ -2,7 +2,11 @@ package redis
 
 import "bytes"
 
-const PUBLISHEDLIST = "PUBLISHEDLIST"
+const (
+	PUBLISHEDLIST = "PUBLISHEDLIST"
+	ISFACRES      = "ISFAVRES"
+	ISFOLLOWED    = "ISFOLLOWED"
+)
 
 // generate key to save on redis
 func Generate(string ...string) string {
