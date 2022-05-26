@@ -5,12 +5,14 @@ import (
 	"dousheng/minIO"
 	"dousheng/model"
 	"dousheng/mq"
+	"dousheng/redis"
 	"fmt"
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
 	"github.com/streadway/amqp"
 	"net/http"
 	"path/filepath"
+	"strconv"
 	"time"
 )
 
@@ -77,25 +79,35 @@ func PublishList(c *gin.Context) {
 	claims := jwt.ExtractClaims(c)
 	uid := int(claims[identityKey].(float64))
 	fmt.Println(uid)
-	//result, err := redis.Clients.Get(redis.Generate(redis.PUBLISHEDLIST, strconv.FormatInt(int64(uid), 10))).Result()
-	//if result != "" {
-	//	c.JSON(http.StatusOK, VideoListResponse{
-	//		Response: Response{
-	//			StatusCode: 0,
-	//			StatusMsg:  "success",
-	//		},
-	//		VideoList: mq.BytesToStruct(),
-	//	})
-	//}
-	id, err := model.VideoListByUserID(uid, time.Now().Unix(), 30)
-	if err != nil {
-		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: err.Error()})
+	fromRedis, err2 := redis.GetPublishListFromRedis(uid)
+	//如果redis中有缓存，直接返回
+	if err2 == nil {
+		c.JSON(http.StatusOK, VideoListResponse{
+			Response: Response{
+				StatusCode: 0,
+				StatusMsg:  "success",
+			},
+			VideoList: *fromRedis,
+		})
+	} else if err2 == redis.Nil { //如果redis中没有，从mongo中查到数据，存到redis中，过期时间设置为15min
+		id, err := model.VideoListByUserID(uid, time.Now().Unix(), 30)
+		if err != nil {
+			c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: err.Error()})
+		}
+		redis.Set(redis.Generate(redis.PUBLISHEDLIST, strconv.FormatInt(int64(uid), 10)),
+			id, time.Minute*15)
+		if err != nil {
+			c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: err.Error()})
+		}
+		c.JSON(http.StatusOK, VideoListResponse{
+			Response: Response{
+				StatusCode: 0,
+				StatusMsg:  "success",
+			},
+			VideoList: id,
+		})
+	} else {
+		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: err2.Error()})
 	}
-	c.JSON(http.StatusOK, VideoListResponse{
-		Response: Response{
-			StatusCode: 0,
-			StatusMsg:  "success",
-		},
-		VideoList: id,
-	})
+
 }
