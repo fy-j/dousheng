@@ -93,7 +93,7 @@ func Feed(c *gin.Context) {
 	}
 	token := c.Query("token")
 	if token != "" {
-		//解析token得到当前用户信息(有bug)
+		//解析token得到当前用户信息
 		uid, _ := GetUserIdFromToken(token)
 		for _, video := range VideoListRes {
 			key = redisUtils.Generate(redisUtils.ISFACRES, strconv.FormatInt(video.Id, 10), strconv.Itoa(uid))
@@ -141,13 +141,16 @@ func Feed(c *gin.Context) {
 		}
 
 	}
-	videoId := VideoListRes[len(VideoListRes)-1].Id
-	firstVideo, _ := model.VideoMegByID(int(videoId))
-	//fmt.Println(firstVideo.Time)
+	returnTime := int64(0)
+	if len(VideoListRes) != 0 {
+		videoId := VideoListRes[len(VideoListRes)-1].Id
+		firstVideo, _ := model.VideoMegByID(int(videoId))
+		returnTime = firstVideo.Time
+	}
 	c.JSON(http.StatusOK, FeedResponse{
 		Response:  Response{StatusCode: 0},
 		VideoList: VideoListRes,
-		NextTime:  firstVideo.Time,
+		NextTime:  returnTime,
 	})
 }
 
