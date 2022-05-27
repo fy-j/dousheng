@@ -5,7 +5,7 @@ import (
 	"dousheng/minIO"
 	_ "dousheng/model"
 	"dousheng/mq"
-	"dousheng/redis"
+	"dousheng/redisUtils"
 	"dousheng/router"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -15,11 +15,11 @@ func main() {
 	//读配置文件
 	// 应该init自动加载
 	//redis初始化
-	if err := redis.Init(&config.Conf.Redis); err != nil {
+	if err := redisUtils.Init(&config.Conf.Redis); err != nil {
 		fmt.Printf("init redis failed, err:%v\n", err)
 		return
 	}
-	defer redis.Close()
+	defer redisUtils.Close()
 
 	//minIO初始化
 	minIO.InitMinIO(&config.Conf.MinIO)

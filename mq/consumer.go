@@ -3,7 +3,7 @@ package mq
 import (
 	"dousheng/minIO"
 	"dousheng/model"
-	"dousheng/redis"
+	"dousheng/redisUtils"
 	"fmt"
 	"log"
 	"strconv"
@@ -24,9 +24,9 @@ func Consume() {
 		fmt.Println(url)
 		model.VideoAdd(data.UserId, "", url, data.Title)
 		//redis删除
-		client := redis.Clients
-		client.Del(redis.Generate(redis.PUBLISHEDLIST, strconv.FormatInt(int64(data.UserId), 10)))
-		client.Del(redis.Generate("feedVideos"))
+		client := redisUtils.Clients
+		client.Del(redisUtils.Generate(redisUtils.PUBLISHEDLIST, strconv.FormatInt(int64(data.UserId), 10)))
+		client.Del(redisUtils.Generate("feedVideos"))
 		if err := v.Ack(true); err != nil {
 			fmt.Println(err.Error())
 		}

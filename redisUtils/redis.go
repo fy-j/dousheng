@@ -1,4 +1,4 @@
-package redis
+package redisUtils
 
 import (
 	"dousheng/config"

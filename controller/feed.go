@@ -3,10 +3,11 @@ package controller
 import (
 	"bytes"
 	"dousheng/model"
-	"dousheng/redis"
+	"dousheng/redisUtils"
 	"encoding/gob"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis"
 	"log"
 	"net/http"
 	"strconv"
@@ -21,23 +22,32 @@ type FeedResponse struct {
 
 // Feed same demo video list for every request
 func Feed(c *gin.Context) {
-	client := redis.Clients
-	key := redis.Generate("feedVideos")
+	client := redisUtils.Clients
+	key := redisUtils.Generate("feedVideos")
 	var VideoListRes []Video
 	latest := c.Query("latest_time")
 	latestTime := time.Now().Unix()
 	if latest != "" {
 		latestTime, _ = strconv.ParseInt(latest, 10, 64)
 	}
-
 	//redis拉取
-	if videosNum := client.ZCard(key).Val(); videosNum != 0 {
+	opt := redis.ZRangeBy{
+		Min: "(" + strconv.Itoa(0),
+		Max: "(" + strconv.Itoa(1653141577),
+	}
+	vs, _ := client.ZRevRangeByScore(key, opt).Result()
+	if videosNum := len(vs); videosNum != 0 {
 		//有
 		//获取到序列化的字符串数组
 		var tmp [30]Video
-		Vs := client.ZRevRange(key, 0, videosNum-1).Val()
+		//Vs := client.ZRevRange(key, 0, videosNum-1).Val()
+		//Vs := client.Do().
+
 		//反序列化
-		for pos, s := range Vs {
+		for pos, s := range vs {
+			if pos == 30 {
+				break
+			}
 			video := Decoder(s)
 			tmp[pos] = video
 		}
@@ -45,14 +55,14 @@ func Feed(c *gin.Context) {
 
 	} else {
 		//没有，从数据库拉取
-		if InfoList, err := model.VideoList(latestTime, 30); err != nil {
+		if InfoList, err := model.VideoList(latestTime, 1000); err != nil {
 			fmt.Println(err)
 		} else {
-			var tmp [30]Video
+			var tmp [1000]Video
 			for pos, info := range InfoList {
-				if pos == 30 {
-					break
-				}
+				//if pos == 30 {
+				//	break
+				//}
 				tmp[pos] = Video{
 					Id: int64(info.VideoID),
 					Author: User{
@@ -71,8 +81,14 @@ func Feed(c *gin.Context) {
 				}
 				//更新到redis
 				client.Do("zadd", key, info.Time, tmp[pos].Encoder())
+				client.Expire(key, time.Minute)
 			}
-			VideoListRes = tmp[0:len(InfoList)]
+			if len(InfoList) > 30 {
+				VideoListRes = tmp[0:30]
+			} else {
+				VideoListRes = tmp[0:len(InfoList)]
+			}
+
 		}
 	}
 	token := c.Query("token")
@@ -80,7 +96,7 @@ func Feed(c *gin.Context) {
 		//解析token得到当前用户信息(有bug)
 		uid, _ := GetUserIdFromToken(token)
 		for _, video := range VideoListRes {
-			key = redis.Generate(redis.ISFACRES, strconv.FormatInt(video.Id, 10), strconv.Itoa(uid))
+			key = redisUtils.Generate(redisUtils.ISFACRES, strconv.FormatInt(video.Id, 10), strconv.Itoa(uid))
 			//查redis
 			isFavRes := client.Get(key).Val()
 			if isFavRes != "" {
@@ -102,7 +118,7 @@ func Feed(c *gin.Context) {
 				}
 			}
 			//关注信息
-			key = redis.Generate(redis.ISFOLLOWED, strconv.FormatInt(video.Author.Id, 10), strconv.Itoa(uid))
+			key = redisUtils.Generate(redisUtils.ISFOLLOWED, strconv.FormatInt(video.Author.Id, 10), strconv.Itoa(uid))
 			isFollowed := client.Get(key).Val()
 			if isFollowed != "" {
 				//有，更新video信息
