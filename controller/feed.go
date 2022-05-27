@@ -29,17 +29,19 @@ func Feed(c *gin.Context) {
 	latestTime := time.Now().Unix()
 	if latest != "" {
 		latestTime, _ = strconv.ParseInt(latest, 10, 64)
+		latestTime /= 1000
 	}
 	//redis拉取
-	opt := redis.ZRangeBy{
-		Min: "(" + strconv.Itoa(0),
-		Max: "(" + strconv.Itoa(1653141577),
-	}
-	vs, _ := client.ZRevRangeByScore(key, opt).Result()
-	if videosNum := len(vs); videosNum != 0 {
+	if client.ZCard(key).Val() != 0 {
 		//有
 		//获取到序列化的字符串数组
 		var tmp [30]Video
+		opt := redis.ZRangeBy{
+			Min: "(" + strconv.Itoa(0),
+			Max: "(" + strconv.Itoa(int(latestTime)),
+		}
+		vs, _ := client.ZRevRangeByScore(key, opt).Result()
+		videosNum := len(vs)
 		//Vs := client.ZRevRange(key, 0, videosNum-1).Val()
 		//Vs := client.Do().
 
@@ -51,11 +53,14 @@ func Feed(c *gin.Context) {
 			video := Decoder(s)
 			tmp[pos] = video
 		}
-		VideoListRes = tmp[0:videosNum]
-
+		if videosNum > 30 {
+			VideoListRes = tmp[0:30]
+		} else {
+			VideoListRes = tmp[0:videosNum]
+		}
 	} else {
 		//没有，从数据库拉取
-		if InfoList, err := model.VideoList(latestTime, 1000); err != nil {
+		if InfoList, err := model.VideoList(0, 1000); err != nil {
 			fmt.Println(err)
 		} else {
 			var tmp [1000]Video
@@ -81,7 +86,7 @@ func Feed(c *gin.Context) {
 				}
 				//更新到redis
 				client.Do("zadd", key, info.Time, tmp[pos].Encoder())
-				client.Expire(key, time.Minute)
+				client.Expire(key, time.Minute*5)
 			}
 			if len(InfoList) > 30 {
 				VideoListRes = tmp[0:30]
@@ -150,7 +155,7 @@ func Feed(c *gin.Context) {
 	c.JSON(http.StatusOK, FeedResponse{
 		Response:  Response{StatusCode: 0},
 		VideoList: VideoListRes,
-		NextTime:  returnTime,
+		NextTime:  returnTime * 1000,
 	})
 }
 
