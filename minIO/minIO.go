@@ -71,3 +71,13 @@ func GetURL(fileName string, expires time.Duration) string {
 	}
 	return fmt.Sprintf("%s", presignedURL)
 }
+
+func GetCoverURL(fileName string, expires time.Duration) string {
+	reqParams := make(url.Values)
+	//reqParams.Set("response-content-disposition", "image/png")
+	presignedURL, err := Client.PresignedGetObject(config.Conf.Bucket.Feed, fileName, expires, reqParams)
+	if err != nil {
+		return ""
+	}
+	return fmt.Sprintf("%s", presignedURL)
+}
