@@ -91,6 +91,20 @@ func userList(query, selector interface{}) ([]User, error) {
 	return list, err
 }
 
+func userinfoList(query, selector interface{}) ([]UserInfo, error) {
+	s := mongoSession.Copy()
+	defer s.Close()
+	c := s.DB(DBName).C(ColUser)
+
+	list := []UserInfo{}
+	q := c.Find(query)
+	if selector != nil {
+		q.Select(selector)
+	}
+	err := q.All(&list)
+	return list, err
+}
+
 func videoList(query, selector, sort interface{}, limit int) ([]VideoInfo, error) {
 	s := mongoSession.Copy()
 	defer s.Close()

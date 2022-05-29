@@ -138,13 +138,11 @@ func UserFollowList(user_id int) ([]UserInfo, error) {
 		return []UserInfo{}, err
 	}
 	var list []UserInfo
-	for _, now := range user.Follower {
-		temp, err := UserInfoById(now)
-		if err != nil {
-			return list, err
-		}
-		list = append(list, temp)
-	}
+	list, err = userinfoList(bson.M{
+		"id": bson.M{
+			"$in": user.Follower,
+		},
+	}, nil)
 	return list, err
 }
 
@@ -155,12 +153,10 @@ func UserFansList(user_id int) ([]UserInfo, error) {
 		return []UserInfo{}, err
 	}
 	var list []UserInfo
-	for _, now := range user.Fans {
-		temp, err := UserInfoById(now)
-		if err != nil {
-			return list, err
-		}
-		list = append(list, temp)
-	}
+	list, err = userinfoList(bson.M{
+		"id": bson.M{
+			"$in": user.Fans,
+		},
+	}, nil)
 	return list, err
 }
