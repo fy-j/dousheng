@@ -1,9 +1,11 @@
 package controller
 
 import (
+	"crypto/md5"
 	"dousheng/model"
+	"encoding/hex"
+	jwt2 "github.com/golang-jwt/jwt/v4"
 	"net/http"
-	"strconv"
 	"time"
 	"unicode/utf8"
 
@@ -61,18 +63,16 @@ var AuthMiddleware, _ = jwt.New(
 		// 1. 用户登录流
 		// 1.1 登录验证
 		Authenticator: func(c *gin.Context) (interface{}, error) {
-			// 获取用户登录请求
-			//var loginReq UserRequest
-			//if err := c.ShouldBind(&loginReq); err != nil {
-			//	return "", jwt.ErrMissingLoginValues
-			//}
-			//username := loginReq.Name
-			//password := loginReq.Pwd
+			//获取用户登录信息
 			username := c.Query("username")
 			password := c.Query("password")
+			// 密码MD5转换
+			ctx := md5.New()
+			ctx.Write([]byte(password))
+			cipherPwd := hex.EncodeToString(ctx.Sum(nil))
 
 			// 登录验证,调用Model层UserLogin函数，返回用户信息
-			user_full, err := model.UserLogin(username, password)
+			user_full, err := model.UserLogin(username, cipherPwd)
 			if err != nil {
 				return nil, jwt.ErrFailedAuthentication
 			}
@@ -111,11 +111,11 @@ var AuthMiddleware, _ = jwt.New(
 		},
 		// 2.2 Token鉴权,当用户通过token请求受限接口时,会执行这段逻辑
 		Authorizator: func(data interface{}, c *gin.Context) bool {
-			uid, err := strconv.Atoi(c.Query("user_id"))
-			if err != nil {
-				return false
-			}
-			if v, ok := data.(*Payload); ok && v.UserId == uid {
+			// uid, err := strconv.Atoi(c.Query("user_id"))
+			// if err != nil {
+			// 	return false
+			// }
+			if _, ok := data.(*Payload); ok {
 				return true
 			}
 			return false
@@ -155,16 +155,13 @@ func UserInfoHandler(c *gin.Context) {
 
 // 用户注册逻辑
 func Register(c *gin.Context) {
-	//// 接收注册信息
-	//var registerReq UserRequest
-	//if err := c.ShouldBind(&registerReq); err != nil {
-	//	c.AbortWithStatus(http.StatusBadRequest)
-	//	return
-	//}
-	//name := registerReq.Name
-	//pwd := registerReq.Pwd
+	// 接收注册信息
 	name := c.Query("username")
 	pwd := c.Query("password")
+	// 密码MD5加密
+	md5Ctx := md5.New()
+	md5Ctx.Write([]byte(pwd))
+	cipherPwd := hex.EncodeToString(md5Ctx.Sum(nil))
 	// 有效性判断
 	if utf8.RuneCountInString(name) > 32 || utf8.RuneCountInString(pwd) > 32 {
 		c.JSON(http.StatusOK, UserLoginResponse{
@@ -176,7 +173,7 @@ func Register(c *gin.Context) {
 		})
 	} else {
 		// 用户信息持久化
-		if _, err := model.UserAdd(name, pwd); err != nil {
+		if _, err := model.UserAdd(name, cipherPwd); err != nil {
 			c.JSON(http.StatusOK, Response{
 				StatusCode: 1,
 				StatusMsg:  "user add error",
@@ -193,6 +190,17 @@ func Register(c *gin.Context) {
 			Token:  "",
 		})
 		// 请求重定向(307),进行用户登录
-		c.Redirect(http.StatusTemporaryRedirect, "/douyin/user/login")
+		c.Redirect(http.StatusTemporaryRedirect, "/douyin/user/login/?username="+name+"&password="+pwd)
 	}
+}
+
+func GetUserIdFromToken(tokenString string) (int, error) {
+	token, err := jwt2.Parse(tokenString, func(t *jwt2.Token) (interface{}, error) {
+		return []byte("summerCamp"), nil
+	})
+	if err != nil {
+		return 0, err
+	}
+	claims := token.Claims.(jwt2.MapClaims)
+	return int(claims["id"].(float64)), nil
 }

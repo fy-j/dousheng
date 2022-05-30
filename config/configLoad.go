@@ -15,6 +15,7 @@ type Config struct {
 	MinIO    MinIOConfig    `mapstructure:"minio"`
 	Mongo    MongoConfig    `mapstructure:"mongo"`
 	RabbitMQ RabbitMQConfig `mapstructure:"rabbitmq"`
+	Bucket   BucketConfig   `mapstructure:"bucket"`
 }
 
 //redis 配置类
@@ -49,6 +50,10 @@ type RabbitMQConfig struct {
 	User  string ` json:"user" `
 	Pwd   string ` json:"pwd"  `
 	Vhost string ` json:"vhost" `
+}
+
+type BucketConfig struct {
+	Feed string ` json:"feed" `
 }
 
 func init() {

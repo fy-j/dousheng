@@ -2,7 +2,6 @@ package model
 
 import (
 	"dousheng/config"
-	"fmt"
 	mgo "gopkg.in/mgo.v2"
 	"log"
 )
@@ -22,8 +21,6 @@ func init() {
 	}
 	mongoSession = session
 	initMaxId()
-	fmt.Println("id:")
-	fmt.Println(userMaxId)
 
 	log.Println("Database init done!")
 }

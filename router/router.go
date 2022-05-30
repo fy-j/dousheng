@@ -2,9 +2,6 @@ package router
 
 import (
 	"dousheng/controller"
-
-	"dousheng/minIO"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -14,18 +11,13 @@ func InitRouter(r *gin.Engine) {
 
 	apiRouter := r.Group("/douyin")
 
-	//redis test api
-	apiRouter.GET("/redis_test", controller.RedisTest)
-
 	// basic apis
 	apiRouter.GET("/feed/", controller.Feed)
 	apiRouter.POST("/user/register/", controller.Register)
 	apiRouter.POST("/user/login/", controller.AuthMiddleware.LoginHandler)
 	apiRouter.GET("/user", controller.AuthMiddleware.MiddlewareFunc(), controller.UserInfoHandler)
 	apiRouter.POST("/publish/action/", controller.Publish)
-	apiRouter.GET("/publish/list/", controller.PublishList)
-	apiRouter.POST("/upload", minIO.Upload)
-	apiRouter.GET("/download", minIO.Download)
+	apiRouter.GET("/publish/list/", controller.AuthMiddleware.MiddlewareFunc(), controller.PublishList)
 
 	// extra apis - I
 	apiRouter.POST("/favorite/action/", controller.FavoriteAction)

@@ -2,9 +2,10 @@ package model
 
 import (
 	"dousheng/config"
+	"fmt"
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
-	"fmt"
+	"time"
 )
 
 const (
@@ -90,10 +91,24 @@ func userList(query, selector interface{}) ([]User, error) {
 	return list, err
 }
 
-func videoList(query,selector,sort interface{},limit int)([]VideoInfo,error){
+func userinfoList(query, selector interface{}) ([]UserInfo, error) {
 	s := mongoSession.Copy()
 	defer s.Close()
 	c := s.DB(DBName).C(ColUser)
+
+	list := []UserInfo{}
+	q := c.Find(query)
+	if selector != nil {
+		q.Select(selector)
+	}
+	err := q.All(&list)
+	return list, err
+}
+
+func videoList(query, selector, sort interface{}, limit int) ([]VideoInfo, error) {
+	s := mongoSession.Copy()
+	defer s.Close()
+	c := s.DB(DBName).C(ColVideo)
 
 	pipe := []bson.M{
 		{
@@ -127,19 +142,57 @@ func videoList(query,selector,sort interface{},limit int)([]VideoInfo,error){
 	// flag := false
 	err := c.Pipe(pipe).All(&list)
 	for i := 0; i < len(list); i++ {
-		list[i].IsFav = true
+		list[i].IsFav = false
 	}
 	return list, err
 }
 
-func videoGet(query interface{})(Video,error){
+func assList(query, selector, sort interface{}) ([]AssessmentInfo, error) {
 	s := mongoSession.Copy()
 	defer s.Close()
-	c := s.DB(DBName).C(ColUser)
+	c := s.DB(DBName).C(ColAssessment)
+	pipe := []bson.M{
+		{
+			"$match": query,
+		},
+		{
+			"$sort": sort,
+		},
+	}
+	pipe = append(pipe, bson.M{
+		"$lookup": bson.M{
+			"from":         ColUser,
+			"localField":   "author_id",
+			"foreignField": "id",
+			"as":           "author",
+		},
+	}, bson.M{
+		"$unwind": "$author",
+	})
 
-	video:=Video{};
-	err:=c.Find(query).One(&video);
-	return video,err;
+	if selector != nil {
+		pipe = append(pipe, bson.M{
+			"$project": selector,
+		})
+	}
+
+	var list []AssessmentInfo
+	err := c.Pipe(pipe).All(&list)
+	for i := 0; i < len(list); i++ {
+		_, month, day := time.Unix(list[i].Time, 0).Date()
+		list[i].Date = fmt.Sprintf("%d-%d", month, day)
+	}
+	return list, err
+}
+
+func videoGet(query interface{}) (Video, error) {
+	s := mongoSession.Copy()
+	defer s.Close()
+	c := s.DB(DBName).C(ColVideo)
+
+	video := Video{}
+	err := c.Find(query).One(&video)
+	return video, err
 }
 
 func initMaxId() {
@@ -156,13 +209,21 @@ func initMaxId() {
 	}
 
 	c = s.DB(DBName).C(ColVideo)
-	var video Video;
+	var video Video
 	err = c.Find(nil).Sort("-id").One(&video)
 	if err == nil {
 		videoMaxId = video.VideoID + 1
 	} else {
 		userMaxId = 0
 	}
-	fmt.Println(userMaxId);
-	fmt.Println(videoMaxId);
+
+	c = s.DB(DBName).C(ColAssessment)
+	var ass Assessment
+	err = c.Find(nil).Sort("-id").One(&ass)
+	if err == nil {
+		assMaxId = ass.AssID + 1
+	} else {
+		assMaxId = 0
+	}
+
 }
