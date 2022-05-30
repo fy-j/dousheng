@@ -10,7 +10,7 @@ import (
 // FavoriteAction no practical effect, just check if token is valid
 func FavoriteAction(c *gin.Context) {
 	token := c.Query("token")
-	userId, _ := strconv.Atoi(c.Query("user_id"))
+	//userId, _ := strconv.Atoi(c.Query("user_id"))
 	videoId, err := strconv.Atoi(c.Query("video_id"))
 	uid, err := GetUserIdFromToken(token)
 	actionType, err := strconv.Atoi(c.Query("action_type"))
@@ -19,14 +19,26 @@ func FavoriteAction(c *gin.Context) {
 			StatusCode: 1,
 			StatusMsg:  err.Error(),
 		})
+		return
 	}
-	if uid != userId {
+	//if uid != userId {
+	//	c.JSON(http.StatusOK, Response{
+	//		StatusCode: 1,
+	//		StatusMsg:  "token伪造",
+	//	})
+	//}
+	err = model.VideoFavAction(uid, videoId, actionType)
+	if err != nil {
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 1,
-			StatusMsg:  "token伪造",
+			StatusMsg:  err.Error(),
 		})
+		return
 	}
-	model.VideoFavAction(uid, videoId, actionType)
+	c.JSON(http.StatusOK, Response{
+		StatusCode: 0,
+		StatusMsg:  "成功喜欢",
+	})
 }
 
 // FavoriteList all users have same favorite video list
