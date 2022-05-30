@@ -63,6 +63,8 @@ func UserGetById(id int) (User, error) {
 		"id": id,
 	}
 	user, err := userGet(query, nil)
+	user.FansCount = len(user.Fans)
+	user.FollCount = len(user.Follower)
 	return user, err
 }
 
@@ -75,8 +77,8 @@ func UserInfoById(id int) (UserInfo, error) {
 	user_info := UserInfo{}
 	user_info.Name = user.Name
 	user_info.UserId = user.UserId
-	user_info.FansCount = user.FansCount
-	user_info.FollCount = user.FollCount
+	user_info.FansCount = len(user.Fans)
+	user_info.FollCount = len(user.Follower)
 	user_info.IsFollow = false
 	return user_info, err
 }
