@@ -28,10 +28,9 @@ func Consume() {
 		fmt.Println(url)
 		buf := new(bytes.Buffer)
 		cmd.Stdout = buf
-		//if cmd.Run() != nil {
-		//	panic("could not generate frame")
-		//}
-		//TODO:解封
+		if cmd.Run() != nil {
+			panic("could not generate frame")
+		}
 		minIO.Upload(config.Conf.Bucket.Feed, data.FileName+"—cover", buf, int64(buf.Len()))
 		coverurl := minIO.GetCoverURL(data.FileName+"-cover", time.Second*120)
 		model.VideoAdd(data.UserId, coverurl, url, data.Title)
