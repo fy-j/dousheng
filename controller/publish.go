@@ -79,7 +79,7 @@ func PublishList(c *gin.Context) {
 	claims := jwt.ExtractClaims(c)
 	uid := int(claims[identityKey].(float64))
 	fmt.Println(uid)
-	fromRedis, err2 := redisUtils.GetPublishListFromRedis(uid)
+	fromRedis, err2 := redisUtils.GetVideoInfoListFromRedis(redisUtils.PUBLISHEDLIST, uid)
 	//如果redis中有缓存，直接返回
 	if fromRedis != nil {
 		c.JSON(http.StatusOK, VideoListResponse{
@@ -89,7 +89,7 @@ func PublishList(c *gin.Context) {
 			},
 			VideoList: *fromRedis,
 		})
-	} else if err2 == redisUtils.Nil || fromRedis == nil { //如果redis中没有，从mongo中查到数据，存到redis中，过期时间设置为15min
+	} else if err2 == redisUtils.Nil || err2 == nil && fromRedis == nil { //如果redis中没有，从mongo中查到数据，存到redis中，过期时间设置为15min
 		id, err := model.VideoListByUserID(uid, time.Now().Unix(), 30)
 		if err != nil {
 			c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: err.Error()})

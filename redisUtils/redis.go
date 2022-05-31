@@ -39,8 +39,8 @@ func Close() {
 }
 
 //从redis中获取发布视频切片
-func GetPublishListFromRedis(userId int) (*[]model.VideoInfo, error) {
-	key := Generate(PUBLISHEDLIST, strconv.FormatInt(int64(userId), 10))
+func GetVideoInfoListFromRedis(key_type string, userId int) (*[]model.VideoInfo, error) {
+	key := Generate(key_type, strconv.FormatInt(int64(userId), 10))
 	result, err := Clients.Get(key).Result()
 	if err == redis.Nil || err != nil {
 		return nil, err

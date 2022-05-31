@@ -23,5 +23,7 @@ rabbitMQ:
   vhost: "admin"
 bucket:
   feed: "userfeed"
+Video:
+  address: "/home/dousheng-server/video-cover/"
 
 

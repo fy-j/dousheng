@@ -10,12 +10,13 @@ var Conf = new(Config)
 
 //
 type Config struct {
-	Port     int            `mapstructure:"port"`
-	Redis    RedisConfig    `mapstructure:"redis"`
-	MinIO    MinIOConfig    `mapstructure:"minio"`
-	Mongo    MongoConfig    `mapstructure:"mongo"`
-	RabbitMQ RabbitMQConfig `mapstructure:"rabbitmq"`
-	Bucket   BucketConfig   `mapstructure:"bucket"`
+	Port       int            `mapstructure:"port"`
+	Redis      RedisConfig    `mapstructure:"redis"`
+	MinIO      MinIOConfig    `mapstructure:"minio"`
+	Mongo      MongoConfig    `mapstructure:"mongo"`
+	RabbitMQ   RabbitMQConfig `mapstructure:"rabbitmq"`
+	Bucket     BucketConfig   `mapstructure:"bucket"`
+	VideoCover VideoCover     `mapstructure:"videoCover"`
 }
 
 //redis 配置类
@@ -54,6 +55,10 @@ type RabbitMQConfig struct {
 
 type BucketConfig struct {
 	Feed string ` json:"feed" `
+}
+
+type VideoCover struct {
+	Address string `json:"address"`
 }
 
 func init() {

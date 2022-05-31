@@ -2,9 +2,12 @@ package controller
 
 import (
 	"dousheng/model"
+	"dousheng/redisUtils"
+	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 // FavoriteAction no practical effect, just check if token is valid
@@ -43,10 +46,45 @@ func FavoriteAction(c *gin.Context) {
 
 // FavoriteList all users have same favorite video list
 func FavoriteList(c *gin.Context) {
-	c.JSON(http.StatusOK, VideoListResponse{
-		Response: Response{
-			StatusCode: 0,
-		},
-		//VideoList: DemoVideos,
-	})
+	claims := jwt.ExtractClaims(c)
+	uid := int(claims[identityKey].(float64))
+	userId, err1 := strconv.Atoi(c.Query("user_id"))
+	if err1 != nil {
+		c.JSON(http.StatusOK, VideoListResponse{
+			Response: Response{
+				StatusCode: 1,
+				StatusMsg:  err1.Error(),
+			},
+			VideoList: nil,
+		})
+	}
+	fromRedis, err := redisUtils.GetVideoInfoListFromRedis(redisUtils.ISFAVORITE, uid)
+	if fromRedis != nil {
+		c.JSON(http.StatusOK, VideoListResponse{
+			Response: Response{
+				StatusCode: 0,
+				StatusMsg:  "success",
+			},
+			VideoList: *fromRedis,
+		})
+	} else if err == redisUtils.Nil || err == nil && fromRedis == nil {
+		videoList, err := model.VideoFavList(userId)
+		if err != nil {
+			c.JSON(http.StatusOK, VideoListResponse{
+				Response: Response{
+					StatusCode: 1,
+					StatusMsg:  err1.Error(),
+				},
+				VideoList: nil,
+			})
+		}
+		redisUtils.Set(redisUtils.Generate(redisUtils.ISFAVORITE, strconv.Itoa(userId)), videoList, time.Minute*15)
+		c.JSON(http.StatusOK, VideoListResponse{
+			Response: Response{
+				StatusCode: 0,
+				StatusMsg:  "success",
+			},
+			VideoList: videoList,
+		})
+	}
 }
