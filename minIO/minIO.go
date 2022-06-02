@@ -74,7 +74,7 @@ func GetURL(fileName string, expires time.Duration) string {
 
 func GetCoverURL(fileName string, expires time.Duration) string {
 	reqParams := make(url.Values)
-	//reqParams.Set("response-content-disposition", "image/png")
+	//reqParams.Set("response-content-disposition", "jpg")
 	presignedURL, err := Client.PresignedGetObject(config.Conf.Bucket.Feed, fileName, expires, reqParams)
 	if err != nil {
 		return ""

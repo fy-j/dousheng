@@ -23,7 +23,7 @@ rabbitMQ:
   vhost: "admin"
 bucket:
   feed: "userfeed"
-Video:
-  address: "cover/"
+video:
+  address: "cover\\"
 
 
