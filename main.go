@@ -2,6 +2,7 @@ package main
 
 import (
 	"dousheng/config"
+	"dousheng/controller"
 	"dousheng/minIO"
 	_ "dousheng/model"
 	"dousheng/mq"
@@ -30,6 +31,9 @@ func main() {
 	defer mq.AmqpClient.Close()
 	//开启消费者
 	go func() { mq.Consume() }()
+
+	//redis feed流缓存预热
+	controller.RedisDataPreLoad()
 
 	//路由初始化
 	r := gin.Default()

@@ -100,21 +100,21 @@ func Feed(c *gin.Context) {
 	if token != "" {
 		//解析token得到当前用户信息
 		uid, _ := GetUserIdFromToken(token)
-		for _, video := range VideoListRes {
+		for pos, video := range VideoListRes {
 			key = redisUtils.Generate(redisUtils.ISFACRES, strconv.FormatInt(video.Id, 10), strconv.Itoa(uid))
 			//查redis
 			isFavRes := client.Get(key).Val()
 			if isFavRes != "" {
 				//有，更新video信息
 				if isFavRes == "true" {
-					video.IsFavorite = true
+					VideoListRes[pos].IsFavorite = true
 				} else if isFavRes == "false" {
-					video.IsFavorite = false
+					VideoListRes[pos].IsFavorite = false
 				}
 			} else {
 				//没有，数据库查询
 				res, _ := model.VideoIsFav(uid, int(video.Id))
-				video.IsFavorite = res
+				VideoListRes[pos].IsFavorite = res
 				//更新到redis，设置ttl
 				if res {
 					client.Set(key, string("true"), time.Minute)
@@ -128,14 +128,14 @@ func Feed(c *gin.Context) {
 			if isFollowed != "" {
 				//有，更新video信息
 				if isFollowed == "true" {
-					video.Author.IsFollow = true
+					VideoListRes[pos].Author.IsFollow = true
 				} else if isFollowed == "false" {
-					video.Author.IsFollow = false
+					VideoListRes[pos].Author.IsFollow = false
 				}
 			} else {
 				//没有，数据库查询
 				res, _ := model.VideoAuthorIsFollowed(uid, int(video.Id))
-				video.Author.IsFollow = res
+				VideoListRes[pos].Author.IsFollow = res
 				//更新到redis，设置ttl
 				if res {
 					client.Set(key, string("true"), time.Minute)
@@ -157,6 +157,36 @@ func Feed(c *gin.Context) {
 		VideoList: VideoListRes,
 		NextTime:  returnTime * 1000,
 	})
+}
+func RedisDataPreLoad() {
+	key := redisUtils.Generate("feedVideos")
+	client := redisUtils.Clients
+	if InfoList, err := model.VideoList(0, 1000); err != nil {
+		fmt.Println(err)
+	} else {
+		var tmp [1000]Video
+		for pos, info := range InfoList {
+			tmp[pos] = Video{
+				Id: int64(info.VideoID),
+				Author: User{
+					Id:            int64(info.Author.UserId),
+					Name:          info.Author.Name,
+					FollowCount:   int64(info.Author.FollCount),
+					FollowerCount: int64(info.Author.FansCount),
+					IsFollow:      info.Author.IsFollow,
+				},
+				PlayUrl:       info.PlayUrl,
+				CoverUrl:      info.CoverUrl,
+				FavoriteCount: int64(info.FavCount),
+				CommentCount:  int64(info.ComCount),
+				IsFavorite:    info.IsFav,
+				Title:         info.Title,
+			}
+			//更新到redis
+			client.Do("zadd", key, info.Time, tmp[pos].Encoder())
+			client.Expire(key, time.Minute*10)
+		}
+	}
 }
 
 //Video序列化
