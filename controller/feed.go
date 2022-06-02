@@ -159,6 +159,7 @@ func Feed(c *gin.Context) {
 	})
 }
 func RedisDataPreLoad() {
+	fmt.Println("缓存预热中...")
 	key := redisUtils.Generate("feedVideos")
 	client := redisUtils.Clients
 	if InfoList, err := model.VideoList(0, 1000); err != nil {
