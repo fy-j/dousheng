@@ -96,56 +96,56 @@ func Feed(c *gin.Context) {
 
 		}
 	}
-	token := c.Query("token")
-	if token != "" {
-		//解析token得到当前用户信息
-		uid, _ := GetUserIdFromToken(token)
-		for _, video := range VideoListRes {
-			key = redisUtils.Generate(redisUtils.ISFACRES, strconv.FormatInt(video.Id, 10), strconv.Itoa(uid))
-			//查redis
-			isFavRes := client.Get(key).Val()
-			if isFavRes != "" {
-				//有，更新video信息
-				if isFavRes == "true" {
-					video.IsFavorite = true
-				} else if isFavRes == "false" {
-					video.IsFavorite = false
-				}
-			} else {
-				//没有，数据库查询
-				res, _ := model.VideoIsFav(uid, int(video.Id))
-				video.IsFavorite = res
-				//更新到redis，设置ttl
-				if res {
-					client.Set(key, string("true"), time.Minute)
-				} else {
-					client.Set(key, string("false"), time.Minute)
-				}
-			}
-			//关注信息
-			key = redisUtils.Generate(redisUtils.ISFOLLOWED, strconv.FormatInt(video.Author.Id, 10), strconv.Itoa(uid))
-			isFollowed := client.Get(key).Val()
-			if isFollowed != "" {
-				//有，更新video信息
-				if isFollowed == "true" {
-					video.Author.IsFollow = true
-				} else if isFollowed == "false" {
-					video.Author.IsFollow = false
-				}
-			} else {
-				//没有，数据库查询
-				res, _ := model.VideoAuthorIsFollowed(uid, int(video.Id))
-				video.Author.IsFollow = res
-				//更新到redis，设置ttl
-				if res {
-					client.Set(key, string("true"), time.Minute)
-				} else {
-					client.Set(key, string("false"), time.Minute)
-				}
-			}
-		}
-
-	}
+	//token := c.Query("token")
+	//if token != "" {
+	//	//解析token得到当前用户信息
+	//	uid, _ := GetUserIdFromToken(token)
+	//	for _, video := range VideoListRes {
+	//		key = redisUtils.Generate(redisUtils.ISFACRES, strconv.FormatInt(video.Id, 10), strconv.Itoa(uid))
+	//		//查redis
+	//		isFavRes := client.Get(key).Val()
+	//		if isFavRes != "" {
+	//			//有，更新video信息
+	//			if isFavRes == "true" {
+	//				video.IsFavorite = true
+	//			} else if isFavRes == "false" {
+	//				video.IsFavorite = false
+	//			}
+	//		} else {
+	//			//没有，数据库查询
+	//			res, _ := model.VideoIsFav(uid, int(video.Id))
+	//			video.IsFavorite = res
+	//			//更新到redis，设置ttl
+	//			if res {
+	//				client.Set(key, string("true"), time.Minute)
+	//			} else {
+	//				client.Set(key, string("false"), time.Minute)
+	//			}
+	//		}
+	//		//关注信息
+	//		key = redisUtils.Generate(redisUtils.ISFOLLOWED, strconv.FormatInt(video.Author.Id, 10), strconv.Itoa(uid))
+	//		isFollowed := client.Get(key).Val()
+	//		if isFollowed != "" {
+	//			//有，更新video信息
+	//			if isFollowed == "true" {
+	//				video.Author.IsFollow = true
+	//			} else if isFollowed == "false" {
+	//				video.Author.IsFollow = false
+	//			}
+	//		} else {
+	//			//没有，数据库查询
+	//			res, _ := model.VideoAuthorIsFollowed(uid, int(video.Id))
+	//			video.Author.IsFollow = res
+	//			//更新到redis，设置ttl
+	//			if res {
+	//				client.Set(key, string("true"), time.Minute)
+	//			} else {
+	//				client.Set(key, string("false"), time.Minute)
+	//			}
+	//		}
+	//	}
+	//
+	//}
 	returnTime := int64(0)
 	if len(VideoListRes) != 0 {
 		videoId := VideoListRes[len(VideoListRes)-1].Id
