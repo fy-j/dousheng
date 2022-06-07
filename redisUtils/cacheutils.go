@@ -7,6 +7,7 @@ const (
 	ISFACRES      = "ISFAVRES"
 	ISFOLLOWED    = "ISFOLLOWED"
 	ISFAVORITE    = "ISFAVORITE"
+	ASSESSMENT    = "ASSESSMENT"
 )
 
 // generate key to save on redis

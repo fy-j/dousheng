@@ -66,3 +66,19 @@ func Set(key string, any interface{}, time time.Duration) error {
 		}
 	}
 }
+
+func GetAssessmentFromRedis(videoId int, userId int) ([]model.AssessmentInfo, error) {
+	key := Generate(ASSESSMENT, strconv.Itoa(videoId), strconv.Itoa(userId))
+	fmt.Println(key)
+	result, err := Clients.Get(key).Result()
+	if err == redis.Nil || err != nil {
+		return nil, err
+	} else {
+		var info []model.AssessmentInfo
+		if err := json.Unmarshal([]byte(result), &info); err != nil {
+			return nil, err
+		} else {
+			return info, nil
+		}
+	}
+}
