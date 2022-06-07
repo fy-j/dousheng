@@ -42,8 +42,6 @@ func Feed(c *gin.Context) {
 		}
 		vs, _ := client.ZRevRangeByScore(key, opt).Result()
 		videosNum := len(vs)
-		//Vs := client.ZRevRange(key, 0, videosNum-1).Val()
-		//Vs := client.Do().
 
 		//反序列化
 		for pos, s := range vs {
@@ -86,7 +84,7 @@ func Feed(c *gin.Context) {
 				}
 				//更新到redis
 				client.Do("zadd", key, info.Time, tmp[pos].Encoder())
-				client.Expire(key, time.Minute*5)
+				client.Expire(key, time.Minute*2)
 			}
 			if len(InfoList) > 30 {
 				VideoListRes = tmp[0:30]

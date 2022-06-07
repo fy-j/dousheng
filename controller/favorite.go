@@ -31,6 +31,13 @@ func FavoriteAction(c *gin.Context) {
 	//	})
 	//}
 	err = model.VideoFavAction(uid, videoId, actionType)
+	//同步到redis
+	key := redisUtils.Generate(redisUtils.ISFACRES, string(videoId), strconv.Itoa(uid))
+	if actionType == 1 {
+		redisUtils.Clients.Set(key, string("true"), time.Minute)
+	} else {
+		redisUtils.Clients.Set(key, string("false"), time.Minute)
+	}
 	if err != nil {
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 1,

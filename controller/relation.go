@@ -2,9 +2,11 @@ package controller
 
 import (
 	"dousheng/model"
+	"dousheng/redisUtils"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 type UserListResponse struct {
@@ -42,6 +44,13 @@ func RelationAction(c *gin.Context) {
 	//	return
 	//}
 	err = model.UserFollow(uid, toUserId, actionType)
+	//同步redis
+	key := redisUtils.Generate(redisUtils.ISFACRES, strconv.Itoa(toUserId), strconv.Itoa(uid))
+	if actionType == 1 {
+		redisUtils.Clients.Set(key, string("true"), time.Minute)
+	} else {
+		redisUtils.Clients.Set(key, string("false"), time.Minute)
+	}
 	if err != nil {
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 1,
