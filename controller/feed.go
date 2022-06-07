@@ -120,6 +120,7 @@ func Feed(c *gin.Context) {
 					client.Set(key, string("false"), time.Minute)
 				}
 			}
+			VideoListRes[pos].FavoriteCount = int64(GetFavCount(int(video.Id)))
 			//关注信息
 			key = redisUtils.Generate(redisUtils.ISFOLLOWED, strconv.FormatInt(video.Author.Id, 10), strconv.Itoa(uid))
 
@@ -159,6 +160,20 @@ func Feed(c *gin.Context) {
 		VideoList: VideoListRes,
 		NextTime:  returnTime * 1000,
 	})
+}
+
+func GetFavCount(videoId int) int {
+	key := redisUtils.Generate(redisUtils.FAVCOUNT, strconv.Itoa(videoId))
+	client := redisUtils.Clients
+	count := client.Get(key).Val()
+	if count == "" {
+		//
+		video, _ := model.VideoMegByID(int(videoId))
+		count = strconv.Itoa(video.FavCount)
+		client.Set(key, count, time.Minute)
+	}
+	res, _ := strconv.Atoi(count)
+	return res
 }
 
 func RedisDataPreLoad() {
