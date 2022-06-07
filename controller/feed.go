@@ -124,6 +124,7 @@ func Feed(c *gin.Context) {
 			}
 			//关注信息
 			key = redisUtils.Generate(redisUtils.ISFOLLOWED, strconv.FormatInt(video.Author.Id, 10), strconv.Itoa(uid))
+
 			isFollowed := client.Get(key).Val()
 			if isFollowed != "" {
 				//有，更新video信息
@@ -143,6 +144,9 @@ func Feed(c *gin.Context) {
 					client.Set(key, string("false"), time.Minute)
 				}
 			}
+			if uid == int(video.Author.Id) {
+				VideoListRes[pos].Author.IsFollow = true
+			}
 		}
 
 	}
@@ -158,6 +162,7 @@ func Feed(c *gin.Context) {
 		NextTime:  returnTime * 1000,
 	})
 }
+
 func RedisDataPreLoad() {
 	fmt.Println("缓存预热中...")
 	key := redisUtils.Generate("feedVideos")
