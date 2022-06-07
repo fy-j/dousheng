@@ -99,7 +99,7 @@ func Feed(c *gin.Context) {
 		//解析token得到当前用户信息
 		uid, _ := GetUserIdFromToken(token)
 		for pos, video := range VideoListRes {
-			key = redisUtils.Generate(redisUtils.ISFACRES, strconv.FormatInt(video.Id, 10), strconv.Itoa(uid))
+			key = redisUtils.Generate(redisUtils.ISFACRES, strconv.FormatInt(video.Author.Id, 10), strconv.Itoa(uid))
 			//查redis
 			isFavRes := client.Get(key).Val()
 			if isFavRes != "" {
@@ -123,7 +123,6 @@ func Feed(c *gin.Context) {
 			VideoListRes[pos].FavoriteCount = int64(GetFavCount(int(video.Id)))
 			//关注信息
 			key = redisUtils.Generate(redisUtils.ISFOLLOWED, strconv.FormatInt(video.Author.Id, 10), strconv.Itoa(uid))
-
 			isFollowed := client.Get(key).Val()
 			if isFollowed != "" {
 				//有，更新video信息
@@ -134,7 +133,7 @@ func Feed(c *gin.Context) {
 				}
 			} else {
 				//没有，数据库查询
-				res, _ := model.VideoAuthorIsFollowed(uid, int(video.Id))
+				res, _ := model.UserIsFollowers(uid, int(video.Author.Id))
 				VideoListRes[pos].Author.IsFollow = res
 				//更新到redis，设置ttl
 				if res {
