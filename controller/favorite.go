@@ -31,6 +31,10 @@ func FavoriteAction(c *gin.Context) {
 	//	})
 	//}
 	err = model.VideoFavAction(uid, videoId, actionType)
+	/**
+	* 点赞之后及时清空缓存
+	 */
+	redisUtils.Clients.Del(redisUtils.Generate(redisUtils.ISFAVORITE, strconv.FormatInt(int64(uid), 10)))
 	if err != nil {
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 1,
