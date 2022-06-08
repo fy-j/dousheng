@@ -7,16 +7,14 @@ import (
 
 //user info in database
 type User struct {
-	ID        bson.ObjectId `bson:"_id,omitempty" json:"_id,omitempty"`
-	UserId    int           `bson:"id" json:"id"`
-	Name      string        `bson:"name" json:"name"`
-	Pwd       string        `bson:"password" json:"password"`
-	FollCount int           `bson:"follow_count" json:"follow_count"`
-	FansCount int           `bson:"follower_count" json:"follower_count"`
-	Follower  []int         `bson:"follower" json:"follower"`
-	Fans      []int         `bson:"fans" json:"fans"`
-	FavVideo  []int         `bson:"fav_video" json:"fav_video"`
-	IsFollow  bool          `bson:"is_follow" json:"is_follow"`
+	ID       bson.ObjectId `bson:"_id,omitempty" json:"_id,omitempty"`
+	UserId   int           `bson:"id" json:"id"`
+	Name     string        `bson:"name" json:"name"`
+	Pwd      string        `bson:"password" json:"password"`
+	Follower []int         `bson:"follower" json:"follower"`
+	Fans     []int         `bson:"fans" json:"fans"`
+	FavVideo []int         `bson:"fav_video" json:"fav_video"`
+	IsFollow bool          `bson:"is_follow" json:"is_follow"`
 }
 
 //user info back to app
@@ -63,8 +61,6 @@ func UserGetById(id int) (User, error) {
 		"id": id,
 	}
 	user, err := userGet(query, nil)
-	user.FansCount = len(user.Fans)
-	user.FollCount = len(user.Follower)
 	return user, err
 }
 
@@ -74,6 +70,9 @@ func UserInfoById(id int) (UserInfo, error) {
 		"id": id,
 	}
 	user, err := userGet(query, nil)
+	if err != nil {
+		return UserInfo{}, err
+	}
 	user_info := UserInfo{}
 	user_info.Name = user.Name
 	user_info.UserId = user.UserId
@@ -89,7 +88,8 @@ func UserLogin(name, pwd string) (User, error) {
 		"name":     name,
 		"password": pwd,
 	}
-	return userGet(query, nil)
+	user, err := userGet(query, nil)
+	return user, err
 }
 
 //judge user whther is author fans
@@ -116,7 +116,7 @@ func UserFollow(user_id, author_id, action int) error {
 		if err != nil {
 			return err
 		}
-		err = changeData(ColUser, bson.M{"id": user_id}, bson.M{"$inc": bson.M{"follow_count": 1}})
+		err = changeData(ColUser, bson.M{"id": author_id}, bson.M{"$addToSet": bson.M{"fans": user_id}})
 		if err != nil {
 			return err
 		}
@@ -125,7 +125,7 @@ func UserFollow(user_id, author_id, action int) error {
 		if err != nil {
 			return err
 		}
-		err = changeData(ColUser, bson.M{"id": author_id}, bson.M{"$inc": bson.M{"follower_count": -1}})
+		err = changeData(ColUser, bson.M{"id": user_id}, bson.M{"$pull": bson.M{"follower": author_id}})
 		if err != nil {
 			return err
 		}
@@ -145,14 +145,21 @@ func UserFollowList(user_id int) ([]UserInfo, error) {
 			"$in": user.Follower,
 		},
 	}, nil)
+	for i := 0; i < len(list); i++ {
+		list[i].IsFollow = true
+	}
 	return list, err
 }
 
-//user follow list
+//user fan list
 func UserFansList(user_id int) ([]UserInfo, error) {
 	user, err := userGet(bson.M{"id": user_id}, nil)
 	if err != nil {
 		return []UserInfo{}, err
+	}
+	hash := make(map[int]bool)
+	for i := 0; i > len(user.Follower); i++ {
+		hash[user.Follower[i]] = true
 	}
 	var list []UserInfo
 	list, err = userinfoList(bson.M{
@@ -160,5 +167,13 @@ func UserFansList(user_id int) ([]UserInfo, error) {
 			"$in": user.Fans,
 		},
 	}, nil)
+	for i := 0; i < len(list); i++ {
+		ok, _ := hash[list[i].UserId]
+		if ok {
+			list[i].IsFollow = true
+		} else {
+			list[i].IsFollow = false
+		}
+	}
 	return list, err
 }
