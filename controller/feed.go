@@ -84,7 +84,7 @@ func Feed(c *gin.Context) {
 				}
 				//更新到redis
 				client.Do("zadd", key, info.Time, tmp[pos].Encoder())
-				client.Expire(key, time.Minute*2)
+				client.Expire(key, time.Hour*24)
 			}
 			if len(InfoList) > 30 {
 				VideoListRes = tmp[0:30]
