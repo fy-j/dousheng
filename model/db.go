@@ -95,13 +95,32 @@ func userinfoList(query, selector interface{}) ([]UserInfo, error) {
 	s := mongoSession.Copy()
 	defer s.Close()
 	c := s.DB(DBName).C(ColUser)
-
-	list := []UserInfo{}
-	q := c.Find(query)
-	if selector != nil {
-		q.Select(selector)
+	pipe := []bson.M{
+		{
+			"$match": query,
+		},
+		{
+			"$addFields": bson.M{
+				"follower_count": bson.M{
+					"$size": "$fans",
+				},
+			},
+		},
+		{
+			"$addFields": bson.M{
+				"follow_count": bson.M{
+					"$size": "$follower",
+				},
+			},
+		},
 	}
-	err := q.All(&list)
+	if selector != nil {
+		pipe = append(pipe, bson.M{
+			"$project": selector,
+		})
+	}
+	list := []UserInfo{}
+	err := c.Pipe(pipe).All(&list)
 	return list, err
 }
 

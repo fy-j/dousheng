@@ -42,8 +42,6 @@ func Feed(c *gin.Context) {
 		}
 		vs, _ := client.ZRevRangeByScore(key, opt).Result()
 		videosNum := len(vs)
-		//Vs := client.ZRevRange(key, 0, videosNum-1).Val()
-		//Vs := client.Do().
 
 		//反序列化
 		for pos, s := range vs {
@@ -86,7 +84,7 @@ func Feed(c *gin.Context) {
 				}
 				//更新到redis
 				client.Do("zadd", key, info.Time, tmp[pos].Encoder())
-				client.Expire(key, time.Minute*5)
+				client.Expire(key, time.Hour*24)
 			}
 			if len(InfoList) > 30 {
 				VideoListRes = tmp[0:30]
@@ -101,7 +99,7 @@ func Feed(c *gin.Context) {
 		//解析token得到当前用户信息
 		uid, _ := GetUserIdFromToken(token)
 		for pos, video := range VideoListRes {
-			key = redisUtils.Generate(redisUtils.ISFACRES, strconv.FormatInt(video.Id, 10), strconv.Itoa(uid))
+			key = redisUtils.Generate(redisUtils.ISFACRES, strconv.FormatInt(video.Author.Id, 10), strconv.Itoa(uid))
 			//查redis
 			isFavRes := client.Get(key).Val()
 			if isFavRes != "" {
@@ -122,9 +120,9 @@ func Feed(c *gin.Context) {
 					client.Set(key, string("false"), time.Minute)
 				}
 			}
+			VideoListRes[pos].FavoriteCount = int64(GetFavCount(int(video.Id)))
 			//关注信息
 			key = redisUtils.Generate(redisUtils.ISFOLLOWED, strconv.FormatInt(video.Author.Id, 10), strconv.Itoa(uid))
-
 			isFollowed := client.Get(key).Val()
 			if isFollowed != "" {
 				//有，更新video信息
@@ -135,7 +133,7 @@ func Feed(c *gin.Context) {
 				}
 			} else {
 				//没有，数据库查询
-				res, _ := model.VideoAuthorIsFollowed(uid, int(video.Id))
+				res, _ := model.UserIsFollowers(uid, int(video.Author.Id))
 				VideoListRes[pos].Author.IsFollow = res
 				//更新到redis，设置ttl
 				if res {
@@ -161,6 +159,20 @@ func Feed(c *gin.Context) {
 		VideoList: VideoListRes,
 		NextTime:  returnTime * 1000,
 	})
+}
+
+func GetFavCount(videoId int) int {
+	key := redisUtils.Generate(redisUtils.FAVCOUNT, strconv.Itoa(videoId))
+	client := redisUtils.Clients
+	count := client.Get(key).Val()
+	if count == "" {
+		//
+		video, _ := model.VideoMegByID(int(videoId))
+		count = strconv.Itoa(video.FavCount)
+		client.Set(key, count, time.Minute)
+	}
+	res, _ := strconv.Atoi(count)
+	return res
 }
 
 func RedisDataPreLoad() {
@@ -190,7 +202,7 @@ func RedisDataPreLoad() {
 			}
 			//更新到redis
 			client.Do("zadd", key, info.Time, tmp[pos].Encoder())
-			client.Expire(key, time.Minute*10)
+			client.Expire(key, time.Hour*24)
 		}
 	}
 }

@@ -2,6 +2,7 @@ package controller
 
 import (
 	"dousheng/model"
+	"dousheng/redisUtils"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
@@ -42,6 +43,9 @@ func RelationAction(c *gin.Context) {
 	//	return
 	//}
 	err = model.UserFollow(uid, toUserId, actionType)
+	//同步redis
+	key := redisUtils.Generate(redisUtils.ISFOLLOWED, strconv.FormatInt(int64(toUserId), 10), strconv.Itoa(uid))
+	redisUtils.Clients.Del(key)
 	if err != nil {
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 1,
