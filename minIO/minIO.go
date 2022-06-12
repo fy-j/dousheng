@@ -27,6 +27,7 @@ func InitMinIO(cfg *config.MinIOConfig) {
 	}
 	//MinIO桶名称不能带下划线、只能小写字母
 	CreateMinioBucket("userfeed")
+	fmt.Println("minIO init success")
 }
 
 //创建名称为bucketName 的视频流桶
