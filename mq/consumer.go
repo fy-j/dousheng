@@ -38,11 +38,19 @@ func Consume() {
 		}
 		coverurl := minIO.GetCoverURL(coverPath+"-cover.jpg", time.Second*120)
 		fmt.Println(coverurl)
-		model.VideoAdd(data.UserId, coverurl, url, data.Title)
 		//redis删除
 		client := redisUtils.Clients
 		client.Del(redisUtils.Generate(redisUtils.PUBLISHEDLIST, strconv.FormatInt(int64(data.UserId), 10)))
 		client.Del(redisUtils.Generate("feedVideos"))
+		model.VideoAdd(data.UserId, coverurl, url, data.Title)
+		defer func() {
+			go func() {
+				//延时1秒执行
+				time.Sleep(time.Second)
+				client.Del(redisUtils.Generate(redisUtils.PUBLISHEDLIST, strconv.FormatInt(int64(data.UserId), 10)))
+				client.Del(redisUtils.Generate("feedVideos"))
+			}()
+		}()
 		if err := v.Ack(true); err != nil {
 			fmt.Println(err.Error())
 		}

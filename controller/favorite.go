@@ -34,6 +34,12 @@ func FavoriteAction(c *gin.Context) {
 	//同步到redis
 	key1 := redisUtils.Generate(redisUtils.ISFACRES, strconv.Itoa(videoId), strconv.Itoa(uid))
 	key2 := redisUtils.Generate(redisUtils.FAVCOUNT, strconv.Itoa(videoId))
+	defer func() {
+		go func() {
+			time.Sleep(time.Second)
+			redisUtils.Clients.Del(redisUtils.Generate(redisUtils.ISFAVORITE, strconv.Itoa(uid)))
+		}()
+	}()
 	if actionType == 1 {
 		redisUtils.Clients.Set(key1, string("true"), time.Minute)
 		redisUtils.Clients.Del(key2)
